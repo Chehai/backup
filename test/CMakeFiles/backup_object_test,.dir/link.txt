@@ -1,1 +1,0 @@
-/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/backup_object_test,.dir/backup_object_test.cpp.o  -o backup_object_test,  -L/opt/local/lib /opt/local/lib/libboost_unit_test_framework-mt.dylib ../src/liblibbackup.a 
