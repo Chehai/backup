@@ -1,0 +1,6 @@
+find_package(Boost 1.46.1 COMPONENTS unit_test_framework)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+include_directories(${backup_SOURCE_DIR}/src)
+add_executable(backup_object_test backup_object_test.cpp)
+target_link_libraries(backup_object_test ${Boost_LIBRARIES} libbackup)

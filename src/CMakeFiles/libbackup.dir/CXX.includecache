@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/cwu/work/backup/backup/src/backup_object.cpp
+backup_object.h
+/Users/cwu/work/backup/backup/src/backup_object.h
+
+/Users/cwu/work/backup/backup/src/backup_object.h
+string
+-
+vector
+-
+backup_store.h
+/Users/cwu/work/backup/backup/src/backup_store.h
+
+/Users/cwu/work/backup/backup/src/backup_store.h
+

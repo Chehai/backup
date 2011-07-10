@@ -1,0 +1,6 @@
+cmake_minimum_required (VERSION 2.8)
+project(backup)
+include_directories(${backup_SOURCE_DIR}/src)
+add_subdirectory(src)
+add_subdirectory(test)
+add_executable(backup main.cpp)

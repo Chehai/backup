@@ -1,0 +1,1 @@
+add_library(libbackup backup.cpp backup_object.cpp)
