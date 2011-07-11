@@ -23,11 +23,29 @@ Boost_DATE_TIME_LIBRARY_DEBUG:FILEPATH=/opt/local/lib/libboost_date_time-mt.dyli
 //Boost date_time library (release)
 Boost_DATE_TIME_LIBRARY_RELEASE:FILEPATH=/opt/local/lib/libboost_date_time-mt.dylib
 
+//The Boost FILESYSTEM library
+Boost_FILESYSTEM_LIBRARY:FILEPATH=/opt/local/lib/libboost_filesystem-mt.dylib
+
+//Boost filesystem library (debug)
+Boost_FILESYSTEM_LIBRARY_DEBUG:FILEPATH=/opt/local/lib/libboost_filesystem-mt.dylib
+
+//Boost filesystem library (release)
+Boost_FILESYSTEM_LIBRARY_RELEASE:FILEPATH=/opt/local/lib/libboost_filesystem-mt.dylib
+
 //Path to a file.
 Boost_INCLUDE_DIR:PATH=/opt/local/include
 
 //Boost library directory
 Boost_LIBRARY_DIRS:FILEPATH=/opt/local/lib
+
+//The Boost SYSTEM library
+Boost_SYSTEM_LIBRARY:FILEPATH=/opt/local/lib/libboost_system-mt.dylib
+
+//Boost system library (debug)
+Boost_SYSTEM_LIBRARY_DEBUG:FILEPATH=/opt/local/lib/libboost_system-mt.dylib
+
+//Boost system library (release)
+Boost_SYSTEM_LIBRARY_RELEASE:FILEPATH=/opt/local/lib/libboost_system-mt.dylib
 
 //The Boost UNIT_TEST_FRAMEWORK library
 Boost_UNIT_TEST_FRAMEWORK_LIBRARY:FILEPATH=/opt/local/lib/libboost_unit_test_framework-mt.dylib
@@ -199,7 +217,7 @@ backup_LIB_DEPENDS:STATIC=
 backup_SOURCE_DIR:STATIC=/Users/cwu/work/backup/backup
 
 //Dependencies for the target
-libbackup_LIB_DEPENDS:STATIC=general;/opt/local/lib/libboost_date_time-mt.dylib;
+libbackup_LIB_DEPENDS:STATIC=general;/opt/local/lib/libboost_date_time-mt.dylib;general;/opt/local/lib/libboost_filesystem-mt.dylib;general;/opt/local/lib/libboost_system-mt.dylib;
 
 
 ########################
@@ -214,12 +232,28 @@ Boost_DATE_TIME_LIBRARY-ADVANCED:INTERNAL=1
 Boost_DATE_TIME_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Boost_DATE_TIME_LIBRARY_RELEASE
 Boost_DATE_TIME_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//Whether the Boost FILESYSTEM library found
+Boost_FILESYSTEM_FOUND:INTERNAL=ON
+//ADVANCED property for variable: Boost_FILESYSTEM_LIBRARY
+Boost_FILESYSTEM_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_FILESYSTEM_LIBRARY_DEBUG
+Boost_FILESYSTEM_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_FILESYSTEM_LIBRARY_RELEASE
+Boost_FILESYSTEM_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Boost_INCLUDE_DIR
 Boost_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Boost_LIBRARY_DIRS
 Boost_LIBRARY_DIRS-ADVANCED:INTERNAL=1
 //The library version string for boost libraries
 Boost_LIB_VERSION:INTERNAL=1_46_1
+//Whether the Boost SYSTEM library found
+Boost_SYSTEM_FOUND:INTERNAL=ON
+//ADVANCED property for variable: Boost_SYSTEM_LIBRARY
+Boost_SYSTEM_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_SYSTEM_LIBRARY_DEBUG
+Boost_SYSTEM_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_SYSTEM_LIBRARY_RELEASE
+Boost_SYSTEM_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //Whether the Boost UNIT_TEST_FRAMEWORK library found
 Boost_UNIT_TEST_FRAMEWORK_FOUND:INTERNAL=ON
 //ADVANCED property for variable: Boost_UNIT_TEST_FRAMEWORK_LIBRARY

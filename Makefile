@@ -137,6 +137,19 @@ backup_object_test/fast:
 	$(MAKE) -f test/CMakeFiles/backup_object_test.dir/build.make test/CMakeFiles/backup_object_test.dir/build
 .PHONY : backup_object_test/fast
 
+#=============================================================================
+# Target rules for targets named local_object_test
+
+# Build rule for target.
+local_object_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 local_object_test
+.PHONY : local_object_test
+
+# fast build rule for target.
+local_object_test/fast:
+	$(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/build
+.PHONY : local_object_test/fast
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -172,6 +185,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... libbackup"
 	@echo "... backup_object_test"
+	@echo "... local_object_test"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

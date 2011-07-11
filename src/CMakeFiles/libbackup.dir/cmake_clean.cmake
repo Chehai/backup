@@ -1,6 +1,7 @@
 FILE(REMOVE_RECURSE
   "CMakeFiles/libbackup.dir/backup.cpp.o"
   "CMakeFiles/libbackup.dir/backup_object.cpp.o"
+  "CMakeFiles/libbackup.dir/local_object.cpp.o"
   "CMakeFiles/libbackup.dir/timestamp.cpp.o"
   "liblibbackup.pdb"
   "liblibbackup.a"

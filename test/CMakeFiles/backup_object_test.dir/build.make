@@ -82,8 +82,12 @@ backup_object_test_EXTERNAL_OBJECTS =
 test/backup_object_test: test/CMakeFiles/backup_object_test.dir/backup_object_test.cpp.o
 test/backup_object_test: /opt/local/lib/libboost_unit_test_framework-mt.dylib
 test/backup_object_test: /opt/local/lib/libboost_date_time-mt.dylib
+test/backup_object_test: /opt/local/lib/libboost_filesystem-mt.dylib
+test/backup_object_test: /opt/local/lib/libboost_system-mt.dylib
 test/backup_object_test: src/liblibbackup.a
 test/backup_object_test: /opt/local/lib/libboost_date_time-mt.dylib
+test/backup_object_test: /opt/local/lib/libboost_filesystem-mt.dylib
+test/backup_object_test: /opt/local/lib/libboost_system-mt.dylib
 test/backup_object_test: test/CMakeFiles/backup_object_test.dir/build.make
 test/backup_object_test: test/CMakeFiles/backup_object_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable backup_object_test"

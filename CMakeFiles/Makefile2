@@ -109,7 +109,7 @@ src/preinstall:
 src/CMakeFiles/libbackup.dir/all:
 	$(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/depend
 	$(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /Users/cwu/work/backup/backup/CMakeFiles  3 4 5
+	$(CMAKE_COMMAND) -E cmake_progress_report /Users/cwu/work/backup/backup/CMakeFiles  3 4 5 6
 	@echo "Built target libbackup"
 .PHONY : src/CMakeFiles/libbackup.dir/all
 
@@ -119,7 +119,7 @@ all: src/CMakeFiles/libbackup.dir/all
 
 # Build rule for subdir invocation for target.
 src/CMakeFiles/libbackup.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/libbackup.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 0
 .PHONY : src/CMakeFiles/libbackup.dir/rule
@@ -142,10 +142,12 @@ clean: src/CMakeFiles/libbackup.dir/clean
 
 # Convenience name for "all" pass in the directory.
 test/all: test/CMakeFiles/backup_object_test.dir/all
+test/all: test/CMakeFiles/local_object_test.dir/all
 .PHONY : test/all
 
 # Convenience name for "clean" pass in the directory.
 test/clean: test/CMakeFiles/backup_object_test.dir/clean
+test/clean: test/CMakeFiles/local_object_test.dir/clean
 .PHONY : test/clean
 
 # Convenience name for "preinstall" pass in the directory.
@@ -169,7 +171,7 @@ all: test/CMakeFiles/backup_object_test.dir/all
 
 # Build rule for subdir invocation for target.
 test/CMakeFiles/backup_object_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 5
 	$(MAKE) -f CMakeFiles/Makefile2 test/CMakeFiles/backup_object_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 0
 .PHONY : test/CMakeFiles/backup_object_test.dir/rule
@@ -185,6 +187,41 @@ test/CMakeFiles/backup_object_test.dir/clean:
 
 # clean rule for target.
 clean: test/CMakeFiles/backup_object_test.dir/clean
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target test/CMakeFiles/local_object_test.dir
+
+# All Build rule for target.
+test/CMakeFiles/local_object_test.dir/all: src/CMakeFiles/libbackup.dir/all
+	$(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/depend
+	$(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/build
+	$(CMAKE_COMMAND) -E cmake_progress_report /Users/cwu/work/backup/backup/CMakeFiles  7
+	@echo "Built target local_object_test"
+.PHONY : test/CMakeFiles/local_object_test.dir/all
+
+# Include target in all.
+all: test/CMakeFiles/local_object_test.dir/all
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+test/CMakeFiles/local_object_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 5
+	$(MAKE) -f CMakeFiles/Makefile2 test/CMakeFiles/local_object_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/cwu/work/backup/backup/CMakeFiles 0
+.PHONY : test/CMakeFiles/local_object_test.dir/rule
+
+# Convenience name for target.
+local_object_test: test/CMakeFiles/local_object_test.dir/rule
+.PHONY : local_object_test
+
+# clean rule for target.
+test/CMakeFiles/local_object_test.dir/clean:
+	$(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/clean
+.PHONY : test/CMakeFiles/local_object_test.dir/clean
+
+# clean rule for target.
+clean: test/CMakeFiles/local_object_test.dir/clean
 .PHONY : clean
 
 #=============================================================================

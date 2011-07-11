@@ -47,4 +47,5 @@ SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/backup.dir/DependInfo.cmake"
   "src/CMakeFiles/libbackup.dir/DependInfo.cmake"
   "test/CMakeFiles/backup_object_test.dir/DependInfo.cmake"
+  "test/CMakeFiles/local_object_test.dir/DependInfo.cmake"
   )

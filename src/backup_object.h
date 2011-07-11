@@ -5,17 +5,25 @@
 
 class BackupObject {
 public:
+	enum Status {
+    	Invalid = -1,
+		Valid = 0
+    };
 	BackupObject();
 	BackupObject(std::string&, Timestamp&);
 	BackupObject(std::string&);
 	BackupObject(const char *, Timestamp&);
 	BackupObject(const char *);
 	
-	std::string& path();
-	Timestamp& updated_at();
+	const std::string& path();
+	const Timestamp& updated_at();
+	virtual int set_updated_at();
+	int set_status(Status);
+	Status status();
 	virtual ~BackupObject();
-private:
+protected:
 	std::string object_path;
 	Timestamp object_updated_at;
+	Status object_status;
 };
 #endif

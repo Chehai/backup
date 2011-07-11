@@ -7,42 +7,69 @@ BackupObject::~BackupObject()
 BackupObject::BackupObject()
 {
 	object_path = "";
-	object_updated_at = now();
+	set_status(BackupObject::Valid);
+	set_updated_at();
 }
 
 BackupObject::BackupObject(std::string& path, Timestamp& t)
 {
 	object_path = path;
+	set_status(BackupObject::Valid);
 	object_updated_at = t;
 }
 
 BackupObject::BackupObject(std::string& path)
 {
 	object_path = path;
-	object_updated_at = now();
+	set_status(BackupObject::Valid);
+	set_updated_at();
 }
 
 
 BackupObject::BackupObject(const char * path, Timestamp& t)
 {
 	object_path = path ? path : "";
+	set_status(BackupObject::Valid);
 	object_updated_at = t;
 }
 
 BackupObject::BackupObject(const char * path)
 {
 	object_path = path ? path : "";
-	object_updated_at = now();
+	set_status(BackupObject::Valid);
+	set_updated_at();
 }
 
-std::string& 
+const std::string& 
 BackupObject::path()
 {
 	return object_path;
 }
 
-Timestamp&
+const Timestamp&
 BackupObject::updated_at()
 {
 	return object_updated_at;
 }
+
+int
+BackupObject::set_updated_at() 
+{
+	object_updated_at = now();
+	return 0;
+}
+
+
+int 
+BackupObject::set_status(BackupObject::Status st)
+{
+	object_status = st;
+	return 0;
+}
+
+BackupObject::Status
+BackupObject::status()
+{
+	return object_status;
+}
+

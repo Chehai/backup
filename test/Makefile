@@ -112,6 +112,20 @@ backup_object_test/fast:
 	cd /Users/cwu/work/backup/backup && $(MAKE) -f test/CMakeFiles/backup_object_test.dir/build.make test/CMakeFiles/backup_object_test.dir/build
 .PHONY : backup_object_test/fast
 
+# Convenience name for target.
+test/CMakeFiles/local_object_test.dir/rule:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f CMakeFiles/Makefile2 test/CMakeFiles/local_object_test.dir/rule
+.PHONY : test/CMakeFiles/local_object_test.dir/rule
+
+# Convenience name for target.
+local_object_test: test/CMakeFiles/local_object_test.dir/rule
+.PHONY : local_object_test
+
+# fast build rule for target.
+local_object_test/fast:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/build
+.PHONY : local_object_test/fast
+
 backup_object_test.o: backup_object_test.cpp.o
 .PHONY : backup_object_test.o
 
@@ -136,6 +150,30 @@ backup_object_test.cpp.s:
 	cd /Users/cwu/work/backup/backup && $(MAKE) -f test/CMakeFiles/backup_object_test.dir/build.make test/CMakeFiles/backup_object_test.dir/backup_object_test.cpp.s
 .PHONY : backup_object_test.cpp.s
 
+local_object_test.o: local_object_test.cpp.o
+.PHONY : local_object_test.o
+
+# target to build an object file
+local_object_test.cpp.o:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/local_object_test.cpp.o
+.PHONY : local_object_test.cpp.o
+
+local_object_test.i: local_object_test.cpp.i
+.PHONY : local_object_test.i
+
+# target to preprocess a source file
+local_object_test.cpp.i:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/local_object_test.cpp.i
+.PHONY : local_object_test.cpp.i
+
+local_object_test.s: local_object_test.cpp.s
+.PHONY : local_object_test.s
+
+# target to generate assembly for a file
+local_object_test.cpp.s:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f test/CMakeFiles/local_object_test.dir/build.make test/CMakeFiles/local_object_test.dir/local_object_test.cpp.s
+.PHONY : local_object_test.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -144,10 +182,14 @@ help:
 	@echo "... depend"
 	@echo "... backup_object_test"
 	@echo "... edit_cache"
+	@echo "... local_object_test"
 	@echo "... rebuild_cache"
 	@echo "... backup_object_test.o"
 	@echo "... backup_object_test.i"
 	@echo "... backup_object_test.s"
+	@echo "... local_object_test.o"
+	@echo "... local_object_test.i"
+	@echo "... local_object_test.s"
 .PHONY : help
 
 
