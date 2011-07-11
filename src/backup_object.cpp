@@ -1,28 +1,48 @@
 #include "backup_object.h"
 
-BackupObject::BackupObject(std::string & local_path)
+BackupObject::~BackupObject()
 {
-	object_local_path = local_path;
 }
 
-BackupObject::BackupObject(const char * local_path)
+BackupObject::BackupObject()
 {
-	object_local_path = local_path;
+	object_path = "";
+	object_updated_at = now();
 }
 
-BackupObject::BackupObject(char * local_path)
+BackupObject::BackupObject(std::string& path, Timestamp& t)
 {
-	object_local_path = local_path;
+	object_path = path;
+	object_updated_at = t;
 }
 
-std::string&
-BackupObject::local_path()
+BackupObject::BackupObject(std::string& path)
 {
-	return object_local_path;
+	object_path = path;
+	object_updated_at = now();
 }
 
-int
-BackupObject::backup()
+
+BackupObject::BackupObject(const char * path, Timestamp& t)
 {
-	return 0;
+	object_path = path ? path : "";
+	object_updated_at = t;
+}
+
+BackupObject::BackupObject(const char * path)
+{
+	object_path = path ? path : "";
+	object_updated_at = now();
+}
+
+std::string& 
+BackupObject::path()
+{
+	return object_path;
+}
+
+Timestamp&
+BackupObject::updated_at()
+{
+	return object_updated_at;
 }

@@ -14,6 +14,15 @@
 # EXTERNAL cache entries
 ########################
 
+//The Boost DATE_TIME library
+Boost_DATE_TIME_LIBRARY:FILEPATH=/opt/local/lib/libboost_date_time-mt.dylib
+
+//Boost date_time library (debug)
+Boost_DATE_TIME_LIBRARY_DEBUG:FILEPATH=/opt/local/lib/libboost_date_time-mt.dylib
+
+//Boost date_time library (release)
+Boost_DATE_TIME_LIBRARY_RELEASE:FILEPATH=/opt/local/lib/libboost_date_time-mt.dylib
+
 //Path to a file.
 Boost_INCLUDE_DIR:PATH=/opt/local/include
 
@@ -189,14 +198,22 @@ backup_LIB_DEPENDS:STATIC=
 //Value Computed by CMake
 backup_SOURCE_DIR:STATIC=/Users/cwu/work/backup/backup
 
-//Dependencies for target
-libbackup_LIB_DEPENDS:STATIC=
+//Dependencies for the target
+libbackup_LIB_DEPENDS:STATIC=general;/opt/local/lib/libboost_date_time-mt.dylib;
 
 
 ########################
 # INTERNAL cache entries
 ########################
 
+//Whether the Boost DATE_TIME library found
+Boost_DATE_TIME_FOUND:INTERNAL=ON
+//ADVANCED property for variable: Boost_DATE_TIME_LIBRARY
+Boost_DATE_TIME_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_DATE_TIME_LIBRARY_DEBUG
+Boost_DATE_TIME_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_DATE_TIME_LIBRARY_RELEASE
+Boost_DATE_TIME_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Boost_INCLUDE_DIR
 Boost_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Boost_LIBRARY_DIRS

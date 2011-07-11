@@ -1,1 +1,5 @@
-add_library(libbackup backup.cpp backup_object.cpp)
+find_package(Boost 1.46.1 COMPONENTS date_time)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+add_library(libbackup backup.cpp backup_object.cpp timestamp.cpp)
+target_link_libraries(libbackup ${Boost_LIBRARIES})

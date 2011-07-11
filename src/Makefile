@@ -160,6 +160,30 @@ backup_object.cpp.s:
 	cd /Users/cwu/work/backup/backup && $(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/backup_object.cpp.s
 .PHONY : backup_object.cpp.s
 
+timestamp.o: timestamp.cpp.o
+.PHONY : timestamp.o
+
+# target to build an object file
+timestamp.cpp.o:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/timestamp.cpp.o
+.PHONY : timestamp.cpp.o
+
+timestamp.i: timestamp.cpp.i
+.PHONY : timestamp.i
+
+# target to preprocess a source file
+timestamp.cpp.i:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/timestamp.cpp.i
+.PHONY : timestamp.cpp.i
+
+timestamp.s: timestamp.cpp.s
+.PHONY : timestamp.s
+
+# target to generate assembly for a file
+timestamp.cpp.s:
+	cd /Users/cwu/work/backup/backup && $(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/timestamp.cpp.s
+.PHONY : timestamp.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -175,6 +199,9 @@ help:
 	@echo "... backup_object.o"
 	@echo "... backup_object.i"
 	@echo "... backup_object.s"
+	@echo "... timestamp.o"
+	@echo "... timestamp.i"
+	@echo "... timestamp.s"
 .PHONY : help
 
 

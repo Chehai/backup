@@ -1,17 +1,21 @@
 #ifndef BACKUP_OBJECT_H
 #define BACKUP_OBJECT_H
 #include <string>
-#include <vector>
-#include "backup_store.h"
+#include "common.h"
+
 class BackupObject {
 public:
-	BackupObject(std::string &);
+	BackupObject();
+	BackupObject(std::string&, Timestamp&);
+	BackupObject(std::string&);
+	BackupObject(const char *, Timestamp&);
 	BackupObject(const char *);
-	BackupObject(char *);
-	int backup();
-	std::string& local_path();
+	
+	std::string& path();
+	Timestamp& updated_at();
+	virtual ~BackupObject();
 private:
-	std::string object_local_path;
-	std::vector<BackupStore *> backup_stores;	
+	std::string object_path;
+	Timestamp object_updated_at;
 };
 #endif

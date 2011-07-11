@@ -95,16 +95,41 @@ src/CMakeFiles/libbackup.dir/backup_object.cpp.o.provides: src/CMakeFiles/libbac
 
 src/CMakeFiles/libbackup.dir/backup_object.cpp.o.provides.build: src/CMakeFiles/libbackup.dir/backup_object.cpp.o
 
+src/CMakeFiles/libbackup.dir/timestamp.cpp.o: src/CMakeFiles/libbackup.dir/flags.make
+src/CMakeFiles/libbackup.dir/timestamp.cpp.o: src/timestamp.cpp
+	$(CMAKE_COMMAND) -E cmake_progress_report /Users/cwu/work/backup/backup/CMakeFiles $(CMAKE_PROGRESS_3)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object src/CMakeFiles/libbackup.dir/timestamp.cpp.o"
+	cd /Users/cwu/work/backup/backup/src && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/libbackup.dir/timestamp.cpp.o -c /Users/cwu/work/backup/backup/src/timestamp.cpp
+
+src/CMakeFiles/libbackup.dir/timestamp.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/libbackup.dir/timestamp.cpp.i"
+	cd /Users/cwu/work/backup/backup/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /Users/cwu/work/backup/backup/src/timestamp.cpp > CMakeFiles/libbackup.dir/timestamp.cpp.i
+
+src/CMakeFiles/libbackup.dir/timestamp.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/libbackup.dir/timestamp.cpp.s"
+	cd /Users/cwu/work/backup/backup/src && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /Users/cwu/work/backup/backup/src/timestamp.cpp -o CMakeFiles/libbackup.dir/timestamp.cpp.s
+
+src/CMakeFiles/libbackup.dir/timestamp.cpp.o.requires:
+.PHONY : src/CMakeFiles/libbackup.dir/timestamp.cpp.o.requires
+
+src/CMakeFiles/libbackup.dir/timestamp.cpp.o.provides: src/CMakeFiles/libbackup.dir/timestamp.cpp.o.requires
+	$(MAKE) -f src/CMakeFiles/libbackup.dir/build.make src/CMakeFiles/libbackup.dir/timestamp.cpp.o.provides.build
+.PHONY : src/CMakeFiles/libbackup.dir/timestamp.cpp.o.provides
+
+src/CMakeFiles/libbackup.dir/timestamp.cpp.o.provides.build: src/CMakeFiles/libbackup.dir/timestamp.cpp.o
+
 # Object files for target libbackup
 libbackup_OBJECTS = \
 "CMakeFiles/libbackup.dir/backup.cpp.o" \
-"CMakeFiles/libbackup.dir/backup_object.cpp.o"
+"CMakeFiles/libbackup.dir/backup_object.cpp.o" \
+"CMakeFiles/libbackup.dir/timestamp.cpp.o"
 
 # External object files for target libbackup
 libbackup_EXTERNAL_OBJECTS =
 
 src/liblibbackup.a: src/CMakeFiles/libbackup.dir/backup.cpp.o
 src/liblibbackup.a: src/CMakeFiles/libbackup.dir/backup_object.cpp.o
+src/liblibbackup.a: src/CMakeFiles/libbackup.dir/timestamp.cpp.o
 src/liblibbackup.a: src/CMakeFiles/libbackup.dir/build.make
 src/liblibbackup.a: src/CMakeFiles/libbackup.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX static library liblibbackup.a"
@@ -117,6 +142,7 @@ src/CMakeFiles/libbackup.dir/build: src/liblibbackup.a
 
 src/CMakeFiles/libbackup.dir/requires: src/CMakeFiles/libbackup.dir/backup.cpp.o.requires
 src/CMakeFiles/libbackup.dir/requires: src/CMakeFiles/libbackup.dir/backup_object.cpp.o.requires
+src/CMakeFiles/libbackup.dir/requires: src/CMakeFiles/libbackup.dir/timestamp.cpp.o.requires
 .PHONY : src/CMakeFiles/libbackup.dir/requires
 
 src/CMakeFiles/libbackup.dir/clean:
