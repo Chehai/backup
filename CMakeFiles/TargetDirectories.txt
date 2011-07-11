@@ -1,4 +1,0 @@
-/Users/cwu/work/backup/backup/CMakeFiles/backup.dir
-/Users/cwu/work/backup/backup/test/CMakeFiles/backup_object_test.dir
-/Users/cwu/work/backup/backup/src/CMakeFiles/libbackup.dir
-/Users/cwu/work/backup/backup/test/CMakeFiles/local_object_test.dir
