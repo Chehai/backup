@@ -4,8 +4,16 @@
 #include "remote_object.h"
 class RemoteStore {
 public:
+	enum Status {
+    	Invalid = -1,
+		Valid = 0
+    };
+	int set_status(Status);
+	Status status();
+	RemoteStore();
 	virtual ~RemoteStore(); 
-	int lookup(LocalObject&, RemoteObject&);
-protected:
+	virtual int lookup(LocalObject&, RemoteObject&);
+private:
+	Status store_status;
 };
 #endif

@@ -1,5 +1,5 @@
 find_package(Boost 1.46.1 COMPONENTS date_time filesystem system)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
-add_library(libbackup backup.cpp backup_object.cpp local_object.cpp timestamp.cpp)
-target_link_libraries(libbackup ${Boost_LIBRARIES})
+add_library(libbackup backup.cpp backup_object.cpp local_object.cpp remote_store.cpp s3_store.cpp timestamp.cpp)
+target_link_libraries(libbackup ${Boost_LIBRARIES} s3)

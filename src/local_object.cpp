@@ -4,11 +4,13 @@ LocalObject::LocalObject(std::string& path)
 : BackupObject(path)
 {
 	filesystem_path = path;
+	set_updated_at();
 }
 LocalObject::LocalObject(const char * path)
 : BackupObject(path)
 {
 	filesystem_path = path;
+	set_updated_at();
 };
 
 int
