@@ -4,11 +4,11 @@
 #include "backup_object.h"
 class LocalObject : public BackupObject {
 public:
-	LocalObject(std::string&);
-	LocalObject(const char *);
-	
+	LocalObject(const std::string&, const std::string&);
+	LocalObject(const char *, const char *);
+	std::string& root();
 	int set_updated_at();
 private:
-	boost::filesystem::path filesystem_path;
+	std::string local_root;
 };
 #endif

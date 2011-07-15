@@ -10,9 +10,9 @@ public:
 		Valid = 0
     };
 	BackupObject();
-	BackupObject(std::string&, Timestamp&);
-	BackupObject(std::string&);
-	BackupObject(const char *, Timestamp&);
+	BackupObject(const std::string&, const Timestamp&);
+	BackupObject(const std::string&);
+	BackupObject(const char *, const Timestamp&);
 	BackupObject(const char *);
 	
 	const std::string& path();

@@ -5,3 +5,4 @@ cmake_install.cmake
 local_object_test
 remote_store_test
 s3_store_test
+remote_object_test

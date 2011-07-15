@@ -3,7 +3,9 @@
 #include "backup_object.h"
 class RemoteObject : public BackupObject {
 public:
-
+	RemoteObject(std::string&, Timestamp&);
+	RemoteObject();
+	
 private:
 };
 #endif

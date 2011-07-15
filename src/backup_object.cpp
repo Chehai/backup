@@ -11,14 +11,14 @@ BackupObject::BackupObject()
 	set_updated_at();
 }
 
-BackupObject::BackupObject(std::string& path, Timestamp& t)
+BackupObject::BackupObject(const std::string& path, const Timestamp& t)
 {
 	object_path = path;
 	set_status(BackupObject::Valid);
 	object_updated_at = t;
 }
 
-BackupObject::BackupObject(std::string& path)
+BackupObject::BackupObject(const std::string& path)
 {
 	object_path = path;
 	set_status(BackupObject::Valid);
@@ -26,7 +26,7 @@ BackupObject::BackupObject(std::string& path)
 }
 
 
-BackupObject::BackupObject(const char * path, Timestamp& t)
+BackupObject::BackupObject(const char * path, const Timestamp& t)
 {
 	object_path = path ? path : "";
 	set_status(BackupObject::Valid);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "s3_store.h"
+S3Store::S3Objects S3Store::s3_objects;
 
 S3Store::S3Store(std::string& ak, std::string& sak, std::string& bn)
 {
@@ -44,13 +45,48 @@ S3Store::bucket_context()
 	return s3_bucket_context;
 }
 
+int 
+S3Store::insert_into_objects(std::string& key, Timestamp& value)
+{
+	s3_objects[key] = value;
+	return 0;
+}
+
+
+
 int
 S3Store::lookup(LocalObject& lo, RemoteObject& ro)
 {
+	S3Store::S3Objects::iterator iter;
+	std::string path = lo.path();
+	// need lock below
+	iter = s3_objects.find(path);
+ 	if (iter == s3_objects.end()) {
+		prefetch(path);
+		iter = s3_objects.find(path);
+		if (iter == s3_objects.end()) {
+			ro.set_status(BackupObject::Invalid);
+			// need unlock
+			return -1;
+		} 
+	}
+	// unlock
+	ro = RemoteObject(path, iter->second);
+	return 0;
+}
+
+int
+S3Store::prefetch(std::string& path)
+{
+	
 	// let us do list bucket objects first, then put the list of objects into some place.
 	// get the last modified date from the list
 	// in order to cut s3 cost
 	// S3_list_bucket(&s3_context, lo.path().c_str(), data.nextMarker,
 	//                        delimiter, maxkeys, 0, &listBucketHandler, &data);
+	// de_initialize
+	// get prefix first
+	std::string prefix = path.substr(0, path.find('/'));
+	
 	return 0;
 }
