@@ -24,7 +24,7 @@ LocalObject::set_updated_at()
 	boost::system::error_code err;
 	boost::filesystem::path local_path = local_root;
 	boost::filesystem::path name = object_path;
-	local_path /= name; 
+	local_path /= name;
 	std::time_t t = boost::filesystem::last_write_time(local_path, err);
 	if (err.value()) {
 		std::cout << "LocalObject::set_updated_at: " << err.message() << std::endl;

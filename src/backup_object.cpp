@@ -59,6 +59,12 @@ BackupObject::set_updated_at()
 	return 0;
 }
 
+int
+BackupObject::set_updated_at(Timestamp& t)
+{
+	object_updated_at = t;
+	return 0;
+}
 
 int 
 BackupObject::set_status(BackupObject::Status st)

@@ -18,6 +18,7 @@ public:
 	const std::string& path();
 	const Timestamp& updated_at();
 	virtual int set_updated_at();
+	int set_updated_at(Timestamp&);
 	int set_status(Status);
 	Status status();
 	virtual ~BackupObject();
