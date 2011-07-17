@@ -6,44 +6,44 @@ BackupObject::~BackupObject()
 
 BackupObject::BackupObject()
 {
-	object_path = "";
+	object_uri = "";
 	set_status(BackupObject::Valid);
 	set_updated_at();
 }
 
-BackupObject::BackupObject(const std::string& path, const Timestamp& t)
+BackupObject::BackupObject(const std::string& uri, const Timestamp& t)
 {
-	object_path = path;
+	object_uri = uri;
 	set_status(BackupObject::Valid);
 	object_updated_at = t;
 }
 
-BackupObject::BackupObject(const std::string& path)
+BackupObject::BackupObject(const std::string& uri)
 {
-	object_path = path;
+	object_uri = uri;
 	set_status(BackupObject::Valid);
 	set_updated_at();
 }
 
 
-BackupObject::BackupObject(const char * path, const Timestamp& t)
+BackupObject::BackupObject(const char * uri, const Timestamp& t)
 {
-	object_path = path ? path : "";
+	object_uri = uri ? uri : "";
 	set_status(BackupObject::Valid);
 	object_updated_at = t;
 }
 
-BackupObject::BackupObject(const char * path)
+BackupObject::BackupObject(const char * uri)
 {
-	object_path = path ? path : "";
+	object_uri = uri ? uri : "";
 	set_status(BackupObject::Valid);
 	set_updated_at();
 }
 
 const std::string& 
-BackupObject::path()
+BackupObject::uri()
 {
-	return object_path;
+	return object_uri;
 }
 
 const Timestamp&

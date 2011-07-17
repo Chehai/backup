@@ -69,12 +69,12 @@ int
 S3Store::lookup(LocalObject& lo, RemoteObject& ro)
 {
 	S3Store::S3Objects::iterator iter;
-	std::string path = lo.path();
+	std::string uri = lo.uri();
 	// need lock below
-	iter = s3_objects.find(path);
+	iter = s3_objects.find(uri);
  	if (iter == s3_objects.end()) {
-		s3_prefetch(path);
-		iter = s3_objects.find(path);
+		s3_prefetch(uri);
+		iter = s3_objects.find(uri);
 		if (iter == s3_objects.end()) {
 			ro.set_status(BackupObject::Invalid);
 			// need unlock
@@ -82,7 +82,7 @@ S3Store::lookup(LocalObject& lo, RemoteObject& ro)
 		} 
 	}
 	// unlock
-	ro = RemoteObject(path, iter->second);
+	ro = RemoteObject(uri, iter->second);
 	return 0;
 }
 
@@ -135,7 +135,7 @@ S3Store::s3_list_bucket_callback(int is_truncated, const char *next_marker, int 
 
 
 int
-S3Store::s3_prefetch(std::string& path)
+S3Store::s3_prefetch(std::string& uri)
 {
 	S3Store::S3ListBucketCallbackData list_bucket_callback_data;
 	
@@ -145,7 +145,7 @@ S3Store::s3_prefetch(std::string& path)
         &s3_list_bucket_callback
     };
     
-	std::string prefix = path.substr(0, path.find('/'));
+	std::string prefix = uri.substr(0, uri.find('/'));
 	S3_list_bucket(&s3_bucket_context, prefix.c_str(), NULL, NULL, 2000, NULL, &list_bucket_handler, &list_bucket_callback_data);
 	while (list_bucket_callback_data.is_truncated) {
 		S3_list_bucket(&s3_bucket_context, prefix.c_str(), list_bucket_callback_data.next_marker.c_str(), NULL, 2000, NULL, &list_bucket_handler, &list_bucket_callback_data);

@@ -15,7 +15,7 @@ public:
 	BackupObject(const char *, const Timestamp&);
 	BackupObject(const char *);
 	
-	const std::string& path();
+	const std::string& uri();
 	const Timestamp& updated_at();
 	virtual int set_updated_at();
 	int set_updated_at(Timestamp&);
@@ -23,7 +23,7 @@ public:
 	Status status();
 	virtual ~BackupObject();
 protected:
-	std::string object_path;
+	std::string object_uri;
 	Timestamp object_updated_at;
 	Status object_status;
 };

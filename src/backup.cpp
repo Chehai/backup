@@ -1,7 +1,31 @@
 #include "backup.h"
+#include <list>
+#include <boost/filesystem.hpp>
 int
-Backup::backup()
+Backup::backup(LocalObject& local_object, RemoteStore * remote_store)
 {
+	boost::system::error_code err;
+	boost::filesystem::path local_object_path = local_object.fs_path();
+	
+	if (boost::filesystem::exists(local_object_path, err)) {
+		if (err.value()) {
+			std::cout << "Backup::backup: Error: " << err.message() << std::endl;
+			return -1;
+		}
+		if (boost::filesystem::is_regular_file(local_object_path)) {
+			local_objects.push_back(local_object);
+		} else if (boost::filesystem::is_directory(local_object_path)) {
+			boost::filesystem::recursive_directory_iterator iter(local_object_path), end_of_dir;
+			for (; iter != end_of_dir; ++iter) {
+				if (boost::filesystem::is_regular_file(iter->path())) {
+					local_objects.push_back(LocalObject(iter->path()));
+				}
+			}
+		} else {
+			std::cout << "Backup::backup: Error: Do not support file type: " << local_object_path.string() << std::endl;
+		}
+	}
+	
 	// if local_object is a directory
 	// list all sub objects, run backup for each one of them
 	// enqueue the local object
