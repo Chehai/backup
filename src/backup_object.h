@@ -16,6 +16,7 @@ public:
 	BackupObject(const char *);
 	
 	const std::string& uri();
+	int set_uri(const std::string&);
 	const Timestamp& updated_at();
 	virtual int set_updated_at();
 	int set_updated_at(Timestamp&);

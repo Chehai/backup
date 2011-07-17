@@ -18,11 +18,25 @@ Backup::backup(LocalObject& local_object, RemoteStore * remote_store)
 			boost::filesystem::recursive_directory_iterator iter(local_object_path), end_of_dir;
 			for (; iter != end_of_dir; ++iter) {
 				if (boost::filesystem::is_regular_file(iter->path())) {
-					local_objects.push_back(LocalObject(iter->path()));
+					LocalObject lo = LocalObject(iter->path());
+					remote_store->set_local_uri(local_object, lo);
+					local_objects.push_back(lo);
 				}
 			}
 		} else {
 			std::cout << "Backup::backup: Error: Do not support file type: " << local_object_path.string() << std::endl;
+		}
+	}
+	
+	for (std::list<LocalObject>::iterator iter = local_objects.begin(); iter != local_objects.end(); ++iter) {
+		RemoteObject remote;
+		LocalObject& local = *iter;
+		if (remote_store->lookup(local, remote)) {
+			std::cout << "Backup::backup: Error: backup " << local.fs_path().string() << std::endl;
+		} else {
+			if (remote.updated_at() < local.updated_at()) {
+				//remote_store->store(local);
+			}
 		}
 	}
 	

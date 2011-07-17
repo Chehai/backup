@@ -15,7 +15,7 @@ LocalObject::LocalObject(const boost::filesystem::path& p, const char * uri)
 };
 
 LocalObject::LocalObject(const boost::filesystem::path& p)
-: BackupObject(p.string())
+: BackupObject(p.filename().string())
 {
 	local_fs_path = p;
 	set_updated_at();

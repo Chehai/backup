@@ -14,6 +14,7 @@ public:
 	S3BucketContext& bucket_context();
 	typedef std::map<std::string, Timestamp> S3Objects;
 	static int insert_into_objects(std::string&, Timestamp&);
+	int set_local_uri(LocalObject& root, LocalObject& lo);
 	~S3Store();
 private:
 	class S3ListBucketCallbackData {

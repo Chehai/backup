@@ -13,6 +13,7 @@ public:
 	RemoteStore();
 	virtual ~RemoteStore(); 
 	virtual int lookup(LocalObject&, RemoteObject&);
+	virtual int set_local_uri(LocalObject&, LocalObject&);
 private:
 	Status store_status;
 };

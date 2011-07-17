@@ -55,7 +55,7 @@ BackupObject::updated_at()
 int
 BackupObject::set_updated_at() 
 {
-	object_updated_at = now();
+	object_updated_at = zero();
 	return 0;
 }
 
@@ -79,3 +79,9 @@ BackupObject::status()
 	return object_status;
 }
 
+int
+BackupObject::set_uri(const std::string& uri)
+{
+	object_uri = uri;
+	return 0;
+}

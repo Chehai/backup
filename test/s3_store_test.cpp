@@ -34,7 +34,6 @@ BOOST_AUTO_TEST_CASE(lookup_test)
 	std::string uri = filepath.filename().string();
 	boost::filesystem::path current_dir = filepath.parent_path();
 	LocalObject lo0(filepath, uri);
-
 	std::string ts("2002-01-20 23:59:59.000");
 	Timestamp uploaded_at(boost::posix_time::time_from_string(ts));
 	S3Store::insert_into_objects(uri, uploaded_at);
@@ -70,5 +69,26 @@ BOOST_AUTO_TEST_CASE(lookup_test)
 	BOOST_CHECK_EQUAL(res2.uri(), lo2.uri());
 	BOOST_CHECK_GT(lo2.updated_at(), res2.updated_at());
 	std::cout << "The above should be fast" << std::endl;
-	
+	LocalObject lo3(current_dir, "no_such_file");
+	RemoteObject res3;
+	ss1.lookup(lo3, res3);
+	BOOST_CHECK_EQUAL(res3.status(), BackupObject::Invalid);
+	BOOST_CHECK_EQUAL(res3.updated_at(), zero());
+}
+
+BOOST_AUTO_TEST_CASE(set_local_uri_test) 
+{
+	std::string ak = "abc";
+	std::string sak = "cdf";
+	std::string bn = "xyz";
+	S3Store ss0(ak, sak, bn);
+	boost::filesystem::path filepath = __FILE__;
+	LocalObject lo0(filepath);
+	LocalObject lo1(filepath.parent_path().parent_path());
+	ss0.set_local_uri(lo1, lo0);
+	BOOST_CHECK_EQUAL(lo0.uri(), "test/s3_store_test.cpp");
+	LocalObject lo2(filepath);
+	LocalObject lo3(filepath);
+	ss0.set_local_uri(lo2, lo3);
+	BOOST_CHECK_EQUAL(lo3.uri(), "s3_store_test.cpp");
 }

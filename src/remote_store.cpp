@@ -27,3 +27,9 @@ RemoteStore::lookup(LocalObject& lo, RemoteObject& ro)
 {
 	return 0;
 }
+
+int 
+RemoteStore::set_local_uri(LocalObject& root, LocalObject& local)
+{
+	return 0;
+}

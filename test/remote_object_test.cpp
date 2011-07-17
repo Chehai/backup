@@ -14,5 +14,7 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 	BOOST_CHECK_EQUAL(ro0.status(), BackupObject::Valid);
 	
 	RemoteObject ro1;
-	BOOST_CHECK_EQUAL(ro1.status(), BackupObject::Valid);		
+	BOOST_CHECK_EQUAL(ro1.status(), BackupObject::Valid);	
+	BOOST_CHECK_EQUAL(ro1.updated_at(), zero());		
+		
 }

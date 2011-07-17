@@ -78,11 +78,30 @@ S3Store::lookup(LocalObject& lo, RemoteObject& ro)
 		if (iter == s3_objects.end()) {
 			ro.set_status(BackupObject::Invalid);
 			// need unlock
-			return -1;
+			return 0;
 		} 
 	}
 	// unlock
 	ro = RemoteObject(uri, iter->second);
+	return 0;
+}
+
+int
+S3Store::set_local_uri(LocalObject& root, LocalObject& local)
+{
+	boost::filesystem::path root_path = root.fs_path();
+	boost::filesystem::path local_path = local.fs_path();
+	boost::filesystem::path::iterator root_iter = root_path.begin();
+	boost::filesystem::path::iterator local_iter = local_path.begin();
+	boost::filesystem::path relative_path;
+	
+	for(; root_iter != root_path.end() && local_iter != local_path.end(); ++root_iter, ++local_iter);
+	for (; local_iter != local_path.end(); ++local_iter) {
+		relative_path /= *local_iter;
+	}
+	if (!relative_path.empty()) {
+		local.set_uri(relative_path.string());
+	}
 	return 0;
 }
 

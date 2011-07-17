@@ -21,5 +21,5 @@ BOOST_AUTO_TEST_CASE(updated_at_test)
 	LocalObject lo2(filepath);
 	BOOST_CHECK_EQUAL(lo2.status(), BackupObject::Valid);	
 	BOOST_CHECK_EQUAL(lo2.fs_path(), filepath);
-	BOOST_CHECK_EQUAL(lo2.uri(), filepath.string());
+	BOOST_CHECK_EQUAL(lo2.uri(), filepath.filename().string());
 }
