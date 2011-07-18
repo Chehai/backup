@@ -2,6 +2,7 @@
 #define REMOTE_STORE_H
 #include "local_object.h"
 #include "remote_object.h"
+class RemoteObject;
 class RemoteStore {
 public:
 	enum Status {
@@ -14,6 +15,7 @@ public:
 	virtual ~RemoteStore(); 
 	virtual int lookup(LocalObject&, RemoteObject&);
 	virtual int set_local_uri(LocalObject&, LocalObject&);
+	virtual int upload(LocalObject&, RemoteObject&);
 private:
 	Status store_status;
 };

@@ -15,6 +15,7 @@ public:
 	typedef std::map<std::string, Timestamp> S3Objects;
 	static int insert_into_objects(std::string&, Timestamp&);
 	int set_local_uri(LocalObject& root, LocalObject& lo);
+	int upload(LocalObject&, RemoteObject&);
 	~S3Store();
 private:
 	class S3ListBucketCallbackData {

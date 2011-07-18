@@ -105,6 +105,12 @@ S3Store::set_local_uri(LocalObject& root, LocalObject& local)
 	return 0;
 }
 
+int
+S3Store::upload(LocalObject& local, RemoteObject& remote)
+{
+	
+}
+
 S3Status
 S3Store::s3_list_bucket_properties_callback(const S3ResponseProperties *properties, void *callback_data)
 {
