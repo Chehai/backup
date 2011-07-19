@@ -9,6 +9,7 @@ public:
 	boost::filesystem::path& fs_path();
 	int insert_to_db();
 	static int populate_local_objects_table(const boost::filesystem::path&, const std::string&);
+	static LocalObject find_by_uri(const std::string&);
 private:
 	boost::filesystem::path local_fs_path;
 };

@@ -32,11 +32,13 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 
 BOOST_AUTO_TEST_CASE(populate_local_objects_table_test)
 {
-	BackupObject::init_db();
+	boost::filesystem::path test_db_path = "test_objects.db"
+	BackupObject::init_db(test_db_path);
 	boost::filesystem::path file_path = __FILE__;
 	LocalObject::populate_local_objects_table(file_path.parent_path(), "");
 	std::time_t t = boost::filesystem::last_write_time(file_path, err);
 	LocalObject lo0(file_path, file_path.parent_path(), "");
+	
 	
 	BackupObject::close_db();
 }

@@ -103,6 +103,19 @@ BackupObject::init_db()
 }
 
 int
+BackupObject::init_db(const boost::filesystem::path db_path)
+{
+	objects_db_path = db_path;
+	if (!objects_db_conn) {
+		if (sqlite3_open(objects_db_path.c_str(), &objects_db_conn) != SQLITE_OK) {
+			close_db();
+			return -1;		
+		}
+	}
+	return 0;
+}
+
+int
 BackupObject::close_db()
 {
 	if (objects_db_conn) {

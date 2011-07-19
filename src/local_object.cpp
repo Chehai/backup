@@ -58,7 +58,11 @@ LocalObject::populate_local_objects_table(const boost::filesystem::path& backup_
 			return -1;
 		}
 		if (boost::filesystem::is_directory(backup_dir)) {
-			std::string sql = "CREATE TABLE IF NOT EXISTS local_objects(fs_path TEXT, updated_at INTEGER, uri TEXT)";
+			std::string sql = "DROP TABLE IF EXISTS local_objects"
+			if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+				return -1;
+			}
+			sql = "CREATE TABLE IF NOT EXISTS local_objects(fs_path TEXT, updated_at INTEGER, uri TEXT)";
 			if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 				return -1;
 			}
@@ -71,4 +75,22 @@ LocalObject::populate_local_objects_table(const boost::filesystem::path& backup_
 			}
 		}
 	}
+}
+
+
+int
+LocalObject::sqlite3_callback(void * data , int count, char ** res, char ** cols)
+{
+	Local
+}
+LocalObject
+LocalObject::find_by_uri(const std::string& uri)
+{
+	std::string sql = "SELECT * FROM local_objects WHERE uri = '";
+	sql += uri;
+	sql += "'";
+	LocalObject lo;
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_callback, &lo, NULL) != SQLITE_OK) {
+		return -1;
+	}	
 }

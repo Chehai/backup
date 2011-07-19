@@ -23,6 +23,7 @@ public:
 	Status status();
 	virtual ~BackupObject();
 	static int init_db();
+	static int init_db(const boost::filesystem::path&);
 	static int close_db();
 protected:
 	std::string object_uri;
