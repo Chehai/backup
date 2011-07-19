@@ -3,23 +3,40 @@
 #include <boost/test/unit_test.hpp>
 #include "../src/local_object.h"
 
-BOOST_AUTO_TEST_CASE(updated_at_test) 
+BOOST_AUTO_TEST_CASE(constructor_test) 
 {
 	boost::system::error_code err;
-	boost::filesystem::path filepath = __FILE__;
-	std::time_t t = boost::filesystem::last_write_time(filepath, err);
-	LocalObject lo0(filepath, filepath.filename().string());
-	Timestamp tt = boost::posix_time::from_time_t(t);
-	BOOST_CHECK_EQUAL(lo0.fs_path(), filepath);
-	BOOST_CHECK_EQUAL(lo0.uri(), filepath.filename().string());
-	BOOST_CHECK_EQUAL(lo0.updated_at(), tt);
+	boost::filesystem::path file_path = __FILE__;
+	std::time_t t = boost::filesystem::last_write_time(file_path, err);
+	LocalObject lo0(file_path, file_path.parent_path(), "");
+	BOOST_CHECK_EQUAL(lo0.fs_path(), file_path);
+	boost::filesystem::path file_uri = file_path.parent_path().filename();
+	file_uri /= file_path.filename(); 
+	BOOST_CHECK_EQUAL(lo0.uri(), file_uri.string());
+	BOOST_CHECK_EQUAL(lo0.updated_at(), t);
 	BOOST_CHECK_EQUAL(lo0.status(), BackupObject::Valid);
 	
-	LocalObject lo1("no_such_dir", "no_such_file");
-	BOOST_CHECK_EQUAL(lo1.status(), BackupObject::Invalid);
+	std::string backup_prefix = "aaa"
+	LocalObject lo1(file_path, file_path.parent_path().parent_path(), backup_prefix);
+	BOOST_CHECK_EQUAL(lo0.fs_path(), file_path);
+	file_uri = file_path.parent_path().filename();
+	file_uri /= file_path.filename();
+	BOOST_CHECK_EQUAL(lo0.uri(), backup_prefix + file_uri.string());
+	BOOST_CHECK_EQUAL(lo0.updated_at(), t);
+	BOOST_CHECK_EQUAL(lo0.status(), BackupObject::Valid);
 	
-	LocalObject lo2(filepath);
-	BOOST_CHECK_EQUAL(lo2.status(), BackupObject::Valid);	
-	BOOST_CHECK_EQUAL(lo2.fs_path(), filepath);
-	BOOST_CHECK_EQUAL(lo2.uri(), filepath.filename().string());
+	file_path = "no_such_dir/no_such_file"
+	LocalObject lo1(file_path, file_path.parent_path(), backup_prefix);
+	BOOST_CHECK_EQUAL(lo1.status(), BackupObject::Invalid);
+}
+
+BOOST_AUTO_TEST_CASE(populate_local_objects_table_test)
+{
+	BackupObject::init_db();
+	boost::filesystem::path file_path = __FILE__;
+	LocalObject::populate_local_objects_table(file_path.parent_path(), "");
+	std::time_t t = boost::filesystem::last_write_time(file_path, err);
+	LocalObject lo0(file_path, file_path.parent_path(), "");
+	
+	BackupObject::close_db();
 }

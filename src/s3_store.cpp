@@ -87,7 +87,7 @@ S3Store::lookup(LocalObject& lo, RemoteObject& ro)
 }
 
 int
-S3Store::set_local_uri(LocalObject& root, LocalObject& local)
+S3Store::set_uri(boost::filesystem::path parent_dir, boost::filesystem::path local_LocalObject& local)
 {
 	boost::filesystem::path root_path = root.fs_path();
 	boost::filesystem::path local_path = local.fs_path();
