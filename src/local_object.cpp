@@ -1,5 +1,9 @@
 #include "local_object.h"
 
+LocalObject::LocalObject()
+{	
+}
+
 LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
 	local_fs_path = file_path;
@@ -7,9 +11,9 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	set_status(BackupObject::Valid);
 	
 	boost::filesystem::path::iterator file_path_iter = file_path.begin();
-	boost::filesystem::path::iterator backup_path_iter = back_dir.begin();
+	boost::filesystem::path::iterator backup_path_iter = backup_dir.begin();
 	boost::filesystem::path relative_path, uri_path;
-	for(; file_path_iter != file_path.end() && backup_path_iter != back_dir.end(); ++file_path_iter, ++backup_path_iter);
+	for(; file_path_iter != file_path.end() && backup_path_iter != backup_dir.end(); ++file_path_iter, ++backup_path_iter);
 	for (; file_path_iter != file_path.end(); ++file_path_iter) {
 		relative_path /= *file_path_iter;
 	}
@@ -31,10 +35,10 @@ LocalObject::insert_to_db()
 	std::string sql = "INSERT INTO local_objects(fs_path, updated_at, uri) VALUES('";
 	sql += local_fs_path.string();
 	sql += "', ";
-	sql += boost::lexical_cast<std::string>(updated_at);
+	sql += boost::lexical_cast<std::string>(updated_at());
 	sql += ", '";
-	sql += uri;
-	sql += "')"
+	sql += uri();
+	sql += "')";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 		return -1;
 	}
@@ -63,7 +67,7 @@ LocalObject::populate_local_objects_table(const boost::filesystem::path& backup_
 			return -1;
 		}
 		if (boost::filesystem::is_directory(backup_dir)) {
-			std::string sql = "DROP TABLE IF EXISTS local_objects"
+			std::string sql = "DROP TABLE IF EXISTS local_objects";
 			if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 				return -1;
 			}
@@ -88,13 +92,13 @@ LocalObject::sqlite3_find_by_callback(void * data , int count, char ** results, 
 {
 	LocalObject * lo = (LocalObject *)data;
 	for (int i = 0; i < count; ++i) {
-		std::string column = columns[i]
+		std::string column = columns[i];
 		if (column == "fs_path") {
 			lo->set_fs_path(boost::filesystem::path(results[i]));
 		} else if (column == "updated_at") {
 			lo->set_updated_at(boost::lexical_cast<std::time_t>(results[i]));
 		} else if (column == "uri") {
-			lo->set_uri(results[i])
+			lo->set_uri(results[i]);
 		} else {
 			return -1;
 		}
@@ -112,7 +116,7 @@ LocalObject::find_by_uri(const std::string& uri)
 	LocalObject lo;
 	lo.set_status(BackupObject::Invalid);
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_by_callback, &lo, NULL) != SQLITE_OK) {
-		return -1;
+		;
 	}
 	return lo;
 }

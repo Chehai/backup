@@ -5,6 +5,7 @@
 
 class LocalObject : public BackupObject {
 public:
+	LocalObject();
 	LocalObject(const boost::filesystem::path&, const boost::filesystem::path&, const std::string&);
 	boost::filesystem::path& fs_path();
 	int insert_to_db();

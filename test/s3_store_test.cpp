@@ -1,5 +1,6 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE s3_store_test
+#include <boost/test/unit_test.hpp>
 #include "../src/s3_store.h"
 
 BOOST_AUTO_TEST_CASE(constructor_test) 
@@ -19,6 +20,12 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 	BOOST_CHECK_EQUAL(sak, ss0.bucket_context().secretAccessKey);
 }
 
+static bool 
+compare(RemoteObject first, RemoteObject second) 
+{
+	return first.uri() < second.uri();
+}
+
 BOOST_AUTO_TEST_CASE(list_test) 
 {
 	std::string ak, sak, bn;
@@ -34,7 +41,8 @@ BOOST_AUTO_TEST_CASE(list_test)
 	std::list<RemoteObject> objects;
 	std::string prefix = "test";
 	ss0.list(prefix, objects);
-	objects.sort();
+	
+	objects.sort(compare);
 	RemoteObject t = objects.front();
 	BOOST_CHECK_EQUAL(t.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(t.uri(), "test/t.txt");

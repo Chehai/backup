@@ -2,6 +2,7 @@
 #define REMOTE_STORE_H
 #include "common.h"
 #include "remote_object.h"
+class RemoteObject;
 class RemoteStore {
 public:
 	enum Status {

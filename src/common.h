@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <iostream>
+#include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <sqlite3.h>

@@ -4,3 +4,4 @@ Makefile
 backup
 cmake_install.cmake
 .DS_Store
+test_objects.db

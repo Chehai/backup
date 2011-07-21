@@ -103,7 +103,7 @@ BackupObject::init_db()
 }
 
 int
-BackupObject::init_db(const boost::filesystem::path db_path)
+BackupObject::init_db(const boost::filesystem::path& db_path)
 {
 	objects_db_path = db_path;
 	if (!objects_db_conn) {

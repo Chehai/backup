@@ -90,15 +90,15 @@ S3Store::s3_list_bucket_callback(int is_truncated, const char *next_marker, int 
 	for (int i = 0; i < contents_count; ++i) {
 		std::string object_key = contents[i].key;
 		std::time_t object_last_modified_at = contents[i].lastModified;
-		RemoteObject ro(std::string(contents[i].key), std::time_t(contents[i].lastModified));
-		data->s3_objects.push_back(ro)
+		RemoteObject ro(object_key, object_last_modified_at);
+		data->s3_objects.push_back(ro);
 	}
 	data->objects_count += contents_count;
     return S3StatusOK;
 }
 
 int
-S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects);
+S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects)
 {
 	S3Store::S3ListBucketCallbackData list_bucket_callback_data(remote_objects);
 	

@@ -1,6 +1,6 @@
 #include "remote_object.h"
 
-RemoteObject::RemoteObject(std::string& uri, std::time_t& t)
+RemoteObject::RemoteObject(const std::string& uri, const std::time_t& t)
 :BackupObject(uri, t)
 {
 	
@@ -15,10 +15,10 @@ int
 RemoteObject::insert_to_db()
 {
 	std::string sql = "INSERT INTO remote_objects(updated_at, uri) VALUES(";
-	sql += boost::lexical_cast<std::string>(updated_at);
+	sql += boost::lexical_cast<std::string>(updated_at());
 	sql += ", '";
-	sql += uri;
-	sql += "')"
+	sql += uri();
+	sql += "')";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 		return -1;
 	}
@@ -26,7 +26,7 @@ RemoteObject::insert_to_db()
 }
 
 int 
-RemoteObject::populate_remote_objects_table(RemoteStore * remote_store, const boost::filesystem::path& backup_dir, const std::string& back_prefix)
+RemoteObject::populate_remote_objects_table(RemoteStore * remote_store, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
 	boost::system::error_code err;
 	
@@ -35,7 +35,7 @@ RemoteObject::populate_remote_objects_table(RemoteStore * remote_store, const bo
 			return -1;
 		}
 		if (boost::filesystem::is_directory(backup_dir)) {
-			std::string sql = "DROP TABLE IF EXISTS remote_objects"
+			std::string sql = "DROP TABLE IF EXISTS remote_objects";
 			if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 				return -1;
 			}
@@ -59,11 +59,11 @@ RemoteObject::sqlite3_find_by_callback(void * data , int count, char ** results,
 {
 	RemoteObject * ro = (RemoteObject *)data;
 	for (int i = 0; i < count; ++i) {
-		std::string column = columns[i]
+		std::string column = columns[i];
 		if (column == "updated_at") {
 			ro->set_updated_at(boost::lexical_cast<std::time_t>(results[i]));
 		} else if (column == "uri") {
-			ro->set_uri(results[i])
+			ro->set_uri(results[i]);
 		} else {
 			return -1;
 		}
@@ -72,7 +72,7 @@ RemoteObject::sqlite3_find_by_callback(void * data , int count, char ** results,
 	return 0;
 }
 
-LocalObject
+RemoteObject
 RemoteObject::find_by_uri(const std::string& uri)
 {
 	std::string sql = "SELECT * FROM remote_objects WHERE uri = '";
@@ -80,8 +80,8 @@ RemoteObject::find_by_uri(const std::string& uri)
 	sql += "' LIMIT 1";
 	RemoteObject ro;
 	ro.set_status(BackupObject::Invalid);
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_by_callback, &lo, NULL) != SQLITE_OK) {
-		return -1;
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_by_callback, &ro, NULL) != SQLITE_OK) {
+		;
 	}
 	return ro;
 }

@@ -23,13 +23,13 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 	BackupObject bo3(NULL);
 	BOOST_CHECK_EQUAL(bo3.uri(), "");
 	BOOST_CHECK_EQUAL(bo3.status(), BackupObject::Valid);
-	BOOST_CHECK_LE(bo3.updated_at(), zero());
+	BOOST_CHECK_LE(bo3.updated_at(), std::time_t(0));
 	
 	std::string str = "haha";
 	BackupObject bo4(str);
 	BOOST_CHECK_EQUAL(bo4.uri(), str);
 	BOOST_CHECK_EQUAL(bo4.status(), BackupObject::Valid);
-	BOOST_CHECK_LE(bo4.updated_at(), zero());
+	BOOST_CHECK_LE(bo4.updated_at(), std::time_t(0));
 	
 	std::time_t t;
 	std::time(&t);
