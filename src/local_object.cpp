@@ -41,11 +41,16 @@ LocalObject::insert_to_db()
 	return 0;
 }
 
-
 boost::filesystem::path&
 LocalObject::fs_path()
 {
 	return local_fs_path;
+}
+int 
+LocalObject::set_fs_path(const boost::filesystem::path& p)
+{
+	local_fs_path = p;
+	return 0;
 }
 
 int 
@@ -79,18 +84,35 @@ LocalObject::populate_local_objects_table(const boost::filesystem::path& backup_
 
 
 int
-LocalObject::sqlite3_callback(void * data , int count, char ** res, char ** cols)
+LocalObject::sqlite3_find_by_callback(void * data , int count, char ** results, char ** columns)
 {
-	Local
+	LocalObject * lo = (LocalObject *)data;
+	for (int i = 0; i < count; ++i) {
+		std::string column = columns[i]
+		if (column == "fs_path") {
+			lo->set_fs_path(boost::filesystem::path(results[i]));
+		} else if (column == "updated_at") {
+			lo->set_updated_at(boost::lexical_cast<std::time_t>(results[i]));
+		} else if (column == "uri") {
+			lo->set_uri(results[i])
+		} else {
+			return -1;
+		}
+	}
+	lo->set_status(BackupObject::Valid);
+	return 0;
 }
+
 LocalObject
 LocalObject::find_by_uri(const std::string& uri)
 {
 	std::string sql = "SELECT * FROM local_objects WHERE uri = '";
 	sql += uri;
-	sql += "'";
+	sql += "' LIMIT 1";
 	LocalObject lo;
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_callback, &lo, NULL) != SQLITE_OK) {
+	lo.set_status(BackupObject::Invalid);
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_by_callback, &lo, NULL) != SQLITE_OK) {
 		return -1;
-	}	
+	}
+	return lo;
 }

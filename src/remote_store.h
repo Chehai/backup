@@ -1,8 +1,7 @@
 #ifndef REMOTE_STORE_H
 #define REMOTE_STORE_H
-#include "local_object.h"
+#include "common.h"
 #include "remote_object.h"
-class RemoteObject;
 class RemoteStore {
 public:
 	enum Status {
@@ -13,9 +12,7 @@ public:
 	Status status();
 	RemoteStore();
 	virtual ~RemoteStore(); 
-	virtual int lookup(LocalObject&, RemoteObject&);
-	virtual int set_local_uri(LocalObject&, LocalObject&);
-	virtual int upload(LocalObject&, RemoteObject&);
+	virtual int list(const std::string& prefix, std::list<RemoteObject>& remote_objects);
 private:
 	Status store_status;
 };

@@ -3,8 +3,11 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <sqlite3.h>
+#include <list>
+#include <map>
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
+#include <sqlite3.h>
+#include <libs3.h>
 #endif

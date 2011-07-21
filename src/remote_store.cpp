@@ -23,19 +23,7 @@ RemoteStore::status()
 }
 
 int
-RemoteStore::lookup(LocalObject& lo, RemoteObject& ro)
-{
-	return 0;
-}
-
-int 
-RemoteStore::set_local_uri(LocalObject& root, LocalObject& local)
-{
-	return 0;
-}
-
-int
-RemoteStore::upload(LocalObject& lo, RemoteObject& ro)
+RemoteStore::list(const std::string& prefix, std::list<RemoteObject>& remote_objects)
 {
 	return 0;
 }

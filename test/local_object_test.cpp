@@ -38,7 +38,10 @@ BOOST_AUTO_TEST_CASE(populate_local_objects_table_test)
 	LocalObject::populate_local_objects_table(file_path.parent_path(), "");
 	std::time_t t = boost::filesystem::last_write_time(file_path, err);
 	LocalObject lo0(file_path, file_path.parent_path(), "");
-	
-	
+	res0 = LocalObject::find_by_uri(lo0.uri());
+	BOOST_CHECK_EQUAL(res0.status(), BackupObject::Valid);
+	BOOST_CHECK_EQUAL(res0.uri(), lo0.uri());
+	BOOST_CHECK_EQUAL(res0.updated_at(), lo0.updated_at());
+	BOOST_CHECK_EQUAL(res0.fs_path(), lo0.fs_path());
 	BackupObject::close_db();
 }

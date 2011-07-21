@@ -4,7 +4,7 @@
 #include "remote_store.h"
 class Backup {
 public:
-	int backup(boost::filesystem::path&, boost::filesystem::path&);
+	int backup(const boost::filesystem::path&, const std::stringh&);
 private:
 	RemoteStore * remote_store;
 };
