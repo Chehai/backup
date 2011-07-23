@@ -55,13 +55,13 @@ S3Store::bucket_context()
 }
 
 S3Status
-S3Store::s3_list_bucket_properties_callback(const S3ResponseProperties *properties, void *callback_data)
+S3Store::s3_response_properties_callback(const S3ResponseProperties *properties, void *callback_data)
 {
     return S3StatusOK;
 }
 
 void 
-S3Store::s3_list_bucket_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
+S3Store::s3_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
 {
     if (error && error->message) {
 		std::cout << "S3Store::s3_list_bucket_complete_callback: Error: Message: " << error->message << std::endl;
@@ -114,7 +114,7 @@ S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects
 	
 	S3ListBucketHandler list_bucket_handler =
     {
-        { &s3_list_bucket_properties_callback, &s3_list_bucket_complete_callback },
+        { &s3_response_properties_callback, &s3_response_complete_callback },
         &s3_list_bucket_callback
     };
     
@@ -123,4 +123,21 @@ S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects
 		S3_list_bucket(&s3_bucket_context, prefix.c_str(), list_bucket_callback_data.next_marker.c_str(), NULL, 2000, NULL, &list_bucket_handler, &list_bucket_callback_data);
 	}
 	return 0;
+}
+
+int
+S3Store::s3_upload_object_callback(int bufferSize, char *buffer, void *callbackData)
+{
+	return 0;
+}
+
+int
+S3Store::upload(LocalObject& lo)
+{	
+    S3PutObjectHandler upload_object_handler =
+    {
+        { &s3_response_properties_callback, &s3_response_complete_callback },
+        &s3_upload_object_callback
+    };
+	S3_put_object(&s3_bucket_context, lo.uri().c_str(), lo.size(), NULL, NULL, &upload_object_handler, NULL);
 }

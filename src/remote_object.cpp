@@ -1,5 +1,7 @@
 #include "remote_object.h"
 
+std::list<RemoteObject> RemoteObject::objects_to_delete;
+
 RemoteObject::RemoteObject(const std::string& uri, const std::time_t& t, char act)
 :BackupObject(uri, t)
 {
@@ -43,49 +45,49 @@ RemoteObject::insert_to_db()
 int 
 RemoteObject::populate_remote_objects_table(RemoteStore * remote_store, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
-	boost::system::error_code err;
-	
-	if (boost::filesystem::exists(backup_dir, err)) {
-		if (err.value()) {
-			return -1;
-		}
-		if (boost::filesystem::is_directory(backup_dir)) {
-			std::string sql = "DROP TABLE IF EXISTS remote_objects";
-			if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-				return -1;
-			}
-			sql = "CREATE TABLE IF NOT EXISTS remote_objects(updated_at INTEGER, uri TEXT, action TEXT)";
-			if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-				return -1;
-			}
-			std::string prefix = backup_prefix + backup_dir.filename().string();
-			std::list<RemoteObject> remote_objects;
-			remote_store->list(prefix, remote_objects);
-			std::list<RemoteObject>::iterator iter;
-			for (iter = remote_objects.begin() ; iter != remote_objects.end(); ++iter) {
-				iter->insert_to_db();
-			}
-		}
+
+	std::string sql = "DROP TABLE IF EXISTS remote_objects";
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+		return -1;
+	}
+	sql = "CREATE TABLE IF NOT EXISTS remote_objects(updated_at INTEGER, uri TEXT, action TEXT)";
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+		return -1;
+	}
+	std::string prefix = backup_prefix + backup_dir.filename().string();
+	std::list<RemoteObject> remote_objects;
+	remote_store->list(prefix, remote_objects);
+	std::list<RemoteObject>::iterator iter;
+	for (iter = remote_objects.begin() ; iter != remote_objects.end(); ++iter) {
+		iter->insert_to_db();
 	}
 }
+
+int
+RemoteObject::new_from_sqlite3(RemoteObject& ro, int count, char ** results, char ** columns)
+{
+	for (int i = 0; i < count; ++i) {
+		std::string column = columns[i];
+		if (column == "updated_at") {
+			ro.set_updated_at(boost::lexical_cast<std::time_t>(results[i]));
+		} else if (column == "uri") {
+			ro.set_uri(results[i]);
+		} else if (column == "action") {
+			ro.set_action(results[i][0]);
+		} else {
+			return -1;
+		}
+	}
+	ro.set_status(BackupObject::Valid);
+	return 0;
+}
+
 
 int
 RemoteObject::sqlite3_find_by_callback(void * data , int count, char ** results, char ** columns)
 {
 	RemoteObject * ro = (RemoteObject *)data;
-	for (int i = 0; i < count; ++i) {
-		std::string column = columns[i];
-		if (column == "updated_at") {
-			ro->set_updated_at(boost::lexical_cast<std::time_t>(results[i]));
-		} else if (column == "uri") {
-			ro->set_uri(results[i]);
-		} else if (column == "action") {
-			ro->set_action(results[i][0]);
-		} else {
-			return -1;
-		}
-	}
-	ro->set_status(BackupObject::Valid);
+	new_from_sqlite3(*ro, count, results, columns);
 	return 0;
 }
 
@@ -101,4 +103,27 @@ RemoteObject::find_by_uri(const std::string& uri)
 		;
 	}
 	return ro;
+}
+
+
+int
+RemoteObject::sqlite3_find_to_delete_callback(void * data , int count, char ** results, char ** columns)
+{
+	RemoteObject ro;
+	ro.set_status(BackupObject::Invalid);
+	new_from_sqlite3(ro, count, results, columns);
+	if (ro.status() == BackupObject::Valid) {
+		objects_to_delete.push_back(ro);
+	}
+	return 0;
+}
+
+std::list<RemoteObject>&
+RemoteObject::find_to_delete()
+{
+	std::string sql = "SELECT ro.* FROM remote_objects ro LEFT JOIN local_objects lo ON ro.uri = lo.uri WHERE lo.uri IS NULL";
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_to_delete_callback, NULL, NULL) != SQLITE_OK) {
+		;
+	}
+	return objects_to_delete;
 }

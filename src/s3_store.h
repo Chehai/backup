@@ -6,6 +6,7 @@ class S3Store : public RemoteStore {
 public:
 	S3Store(std::string&, std::string&, std::string&);
 	int list(const std::string& prefix, std::list<RemoteObject>& remote_objects);
+	int upload(LocalObject& lo);
 	std::string& access_key();
 	std::string& secret_access_key();
 	std::string& bucket_name();
@@ -25,8 +26,9 @@ private:
 	std::string s3_bucket_name;
 	S3BucketContext s3_bucket_context;
 	static unsigned int s3_store_usage_count;
-	static S3Status s3_list_bucket_properties_callback(const S3ResponseProperties *, void *);
-	static void s3_list_bucket_complete_callback(S3Status, const S3ErrorDetails *, void *);
+	static S3Status s3_response_properties_callback(const S3ResponseProperties *, void *);
+	static void s3_response_complete_callback(S3Status, const S3ErrorDetails *, void *);
+	static int s3_upload_object_callback(int bufferSize, char *buffer, void *callbackData);
 	static S3Status s3_list_bucket_callback(int isTruncated, const char *nextMarker, int contentsCount, const S3ListBucketContent *contents, \
 											int commonPrefixesCount, const char **commonPrefixes, void *callbackData);
 };

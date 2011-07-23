@@ -2,6 +2,7 @@
 #define REMOTE_STORE_H
 #include "common.h"
 #include "remote_object.h"
+#include "local_object.h"
 class RemoteObject;
 class RemoteStore {
 public:
@@ -14,6 +15,8 @@ public:
 	RemoteStore();
 	virtual ~RemoteStore(); 
 	virtual int list(const std::string& prefix, std::list<RemoteObject>& remote_objects);
+	int upload(std::list<LocalObject>& local_objects);
+	virtual int upload(LocalObject&);
 private:
 	Status store_status;
 };

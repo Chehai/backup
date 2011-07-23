@@ -27,3 +27,18 @@ RemoteStore::list(const std::string& prefix, std::list<RemoteObject>& remote_obj
 {
 	return 0;
 }
+
+int
+RemoteStore::upload(std::list<LocalObject>& local_objects)
+{
+	for (std::list<LocalObject>::iterator iter = local_objects.begin(); iter != local_objects.end(); ++iter) {
+		upload(*iter);
+	}
+	return 0;
+}
+
+int
+RemoteStore::upload(LocalObject& local_object)
+{
+	return 0;
+}
