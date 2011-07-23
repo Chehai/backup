@@ -88,10 +88,20 @@ S3Store::s3_list_bucket_callback(int is_truncated, const char *next_marker, int 
 	}
 
 	for (int i = 0; i < contents_count; ++i) {
-		std::string object_key = contents[i].key;
-		std::time_t object_last_modified_at = contents[i].lastModified;
-		RemoteObject ro(object_key, object_last_modified_at);
-		data->s3_objects.push_back(ro);
+		std::string full_key = contents[i].key;
+		const boost::regex object_key_pattern("\\A(.*)\\.(\\d+)\\.([a-z])\\z");
+		boost::smatch what; 
+		if (boost::regex_match(full_key, what, object_key_pattern)) { 
+			if (what[0].matched) {
+				std::string key, updated_at_str;
+				key.assign(what[1].first, what[1].second);
+				updated_at_str.assign(what[2].first, what[2].second);
+				std::time_t updated_at = boost::lexical_cast<std::time_t>(updated_at_str);
+				char action = *what[3].first;
+				RemoteObject ro(key, updated_at, action);
+				data->s3_objects.push_back(ro);
+			}
+		} 
 	}
 	data->objects_count += contents_count;
     return S3StatusOK;

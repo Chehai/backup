@@ -1,4 +1,4 @@
-find_package(Boost 1.46.1 COMPONENTS unit_test_framework date_time filesystem system)
+find_package(Boost 1.46.1 COMPONENTS unit_test_framework date_time filesystem system regex)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${backup_SOURCE_DIR}/src)

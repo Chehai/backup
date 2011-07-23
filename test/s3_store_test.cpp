@@ -46,9 +46,9 @@ BOOST_AUTO_TEST_CASE(list_test)
 	RemoteObject t = objects.front();
 	BOOST_CHECK_EQUAL(t.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(t.uri(), "test/t.txt");
-	BOOST_CHECK_LT(t.updated_at(), std::time(NULL));
+	BOOST_CHECK_EQUAL(t.updated_at(), std::time_t(1311394638UL));
 	RemoteObject tt = objects.back();
 	BOOST_CHECK_EQUAL(tt.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(tt.uri(), "test/tt.txt");
-	BOOST_CHECK_LT(tt.updated_at(), std::time(NULL));
+	BOOST_CHECK_EQUAL(tt.updated_at(), std::time_t(1311394630UL));
 }

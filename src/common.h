@@ -9,6 +9,7 @@
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 #include <sqlite3.h>
 #include <libs3.h>
 #endif
