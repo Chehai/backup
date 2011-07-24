@@ -146,6 +146,28 @@ S3Store::s3_upload_object_callback(int buffer_size, char * buffer, void * callba
 	return count;
 }
 
+std::string 
+S3Store::s3_object_key(const LocalObject& lo)
+{
+	std::string key = lo.uri();
+	key += '.';
+	key += boost::lexical_cast<std::string>(lo.updated_at());
+	key += ".u";
+	return key;
+}
+
+std::string 
+S3Store::s3_object_key(const RemoteObject& ro)
+{
+	std::string key = ro.uri();
+	key += '.';
+	key += boost::lexical_cast<std::string>(ro.updated_at());
+	key += '.';
+	key += ro.action();
+	return key;
+}
+
+
 int
 S3Store::upload(LocalObject& lo)
 {	
@@ -154,10 +176,7 @@ S3Store::upload(LocalObject& lo)
         { &s3_response_properties_callback, &s3_response_complete_callback },
         &s3_upload_object_callback
     };
-	std::string key = lo.uri();
-	key += '.';
-	key += boost::lexical_cast<std::string>(lo.updated_at());
-	key += ".u";
+	std::string key = s3_object_key(lo);
 	std::ifstream local_file;
 	local_file.open(lo.fs_path().string().c_str(), std::ios::binary);
 	S3Store::S3UploadObjectCallbackData upload_object_callback_data(local_file, lo.size());
@@ -200,3 +219,40 @@ S3Store::unload(RemoteObject& ro)
 	S3_put_object(&s3_bucket_context, key.c_str(), key.length(), NULL, NULL, &unload_object_handler, &unload_object_callback_data);
 	return 0;	
 }
+
+S3Store::S3DownloadObjectCallbackData::S3DownloadObjectCallbackData(std::ofstream& f) 
+: file(f)
+{	
+}
+
+
+S3Status
+S3Store::s3_download_object_callback(int buffer_size, const char * buffer, void * callback_data)
+{
+	S3DownloadObjectCallbackData * download_object_callback_data = (S3DownloadObjectCallbackData *)callback_data;
+	
+	download_object_callback_data->file.write(buffer, buffer_size);
+	
+	return S3StatusOK;
+}
+
+int 
+S3Store::download(RemoteObject& ro, const boost::filesystem::path& dir)
+{
+	S3GetObjectHandler download_object_handler = 
+    {
+        { &s3_response_properties_callback, &s3_response_complete_callback },
+        &s3_download_object_callback
+    };
+	std::string key = s3_object_key(ro);
+	boost::filesystem::path p = dir.parent_path();
+	p /= ro.uri();
+	boost::filesystem::create_directories(p.parent_path());
+	std::ofstream local_file;
+	local_file.open(p.string().c_str(), std::ios::binary | std::ios::trunc);
+	S3Store::S3DownloadObjectCallbackData download_object_callback_data(local_file);
+	S3_get_object(&s3_bucket_context, key.c_str(), NULL, 0, 0, NULL, &download_object_handler, &download_object_callback_data);
+	local_file.close();
+	return 0;
+}
+

@@ -104,3 +104,46 @@ BOOST_AUTO_TEST_CASE(find_to_delete_test)
 	
 	BackupObject::close_db();
 }
+
+BOOST_AUTO_TEST_CASE(find_to_download_test)
+{
+	boost::system::error_code err;
+	boost::filesystem::path test_db_path = "test_objects.db";
+	BackupObject::init_db(test_db_path);
+	boost::filesystem::path file_path = __FILE__;
+	
+	class TestRemoteStore : public RemoteStore {
+		int list(const std::string& prefix, std::list<RemoteObject>& remote_objects) {
+			std::time_t t = 1310532657;
+			RemoteObject ro0("t.txt", t - 10, 'u');
+			RemoteObject ro1("t.txt", t - 9 , 'u');
+			RemoteObject ro2("t.txt", t - 8 , 'u');
+			RemoteObject ro3("t.txt", t + 3600 , 'u');
+			RemoteObject ro4("t.txt", t + 7200 , 'u');
+			
+			RemoteObject ro5("tt.txt", t - 20 , 'u');
+			RemoteObject ro6("tt.txt", t - 10 , 'd');
+			
+			remote_objects.push_back(ro0);
+			remote_objects.push_back(ro1);
+			remote_objects.push_back(ro2);
+			remote_objects.push_back(ro3);
+			remote_objects.push_back(ro4);
+			remote_objects.push_back(ro5);
+			remote_objects.push_back(ro6);
+			return 0;
+		}
+	};
+	TestRemoteStore trs;
+	
+	RemoteObject::populate_remote_objects_table(&trs, file_path.parent_path(), "");
+	std::time_t t = 1310532657;
+	std::list<RemoteObject>& ros = RemoteObject::find_to_download(t);
+	BOOST_CHECK_EQUAL(ros.size(), 1);
+	RemoteObject res = ros.front();
+	BOOST_CHECK_EQUAL(res.uri(), "t.txt");
+	BOOST_CHECK_EQUAL(res.updated_at(), t - 8);
+	BOOST_CHECK_EQUAL(res.action(), 'u');
+	
+	BackupObject::close_db();
+}

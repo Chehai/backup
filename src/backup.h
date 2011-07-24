@@ -6,7 +6,7 @@
 class Backup {
 public:
 	int backup(const boost::filesystem::path&, const std::string&);
-	int restore(const boost::filesystem::path&, const std::string&, const std::time&);
+	int restore(const boost::filesystem::path&, const std::string&, const std::time_t&);
 private:
 	bool dir_ok(const boost::filesystem::path&);
 	RemoteStore * remote_store;

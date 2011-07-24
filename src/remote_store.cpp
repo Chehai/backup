@@ -57,3 +57,18 @@ RemoteStore::unload(RemoteObject& remote_object)
 {
 	return 0;
 }
+
+int
+RemoteStore::download(std::list<RemoteObject>& remote_objects, const boost::filesystem::path& dir)
+{
+	for (std::list<RemoteObject>::iterator iter = remote_objects.begin(); iter != remote_objects.end(); ++iter) {
+		download(*iter, dir);
+	}
+	return 0;
+}
+
+int
+RemoteStore::download(RemoteObject& remote_object, const boost::filesystem::path& dir)
+{
+	return 0;
+}

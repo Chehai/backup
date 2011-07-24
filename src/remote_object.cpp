@@ -1,6 +1,7 @@
 #include "remote_object.h"
 
 std::list<RemoteObject> RemoteObject::objects_to_delete;
+std::list<RemoteObject> RemoteObject::objects_to_download;
 
 RemoteObject::RemoteObject(const std::string& uri, const std::time_t& t, char act)
 :BackupObject(uri, t)
@@ -14,7 +15,7 @@ RemoteObject::RemoteObject()
 }
 
 char
-RemoteObject::action()
+RemoteObject::action() const
 {
 	return object_action;
 }
@@ -126,4 +127,29 @@ RemoteObject::find_to_delete()
 		;
 	}
 	return objects_to_delete;
+}
+
+int
+RemoteObject::sqlite3_find_to_download_callback(void * data , int count, char ** results, char ** columns)
+{
+	RemoteObject ro;
+	ro.set_status(BackupObject::Invalid);
+	new_from_sqlite3(ro, count, results, columns);
+	if (ro.status() == BackupObject::Valid) {
+		objects_to_download.push_back(ro);
+	}
+	return 0;
+}
+
+
+std::list<RemoteObject>&
+RemoteObject::find_to_download(const std::time_t& timestamp)
+{
+	std::string sql = "SELECT ro1.* FROM remote_objects ro1 JOIN (SELECT ro.uri uri, MAX(ro.updated_at) max_updated_at FROM remote_objects ro where ro.updated_at <= ";
+	sql += boost::lexical_cast<std::string>(timestamp);
+	sql += " GROUP BY ro.uri) t ON ro1.uri = t.uri AND ro1.updated_at = t.max_updated_at WHERE ro1.action = 'u' ORDER BY ro1.uri";
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_to_download_callback, NULL, NULL) != SQLITE_OK) {
+		;
+	}
+	return objects_to_download;
 }

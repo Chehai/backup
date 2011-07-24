@@ -104,3 +104,32 @@ BOOST_AUTO_TEST_CASE(unload_test)
 	BOOST_CHECK_EQUAL(obj.action(), 'd');
 	//BOOST_CHECK_EQUAL(obj.updated_at(), boost::filesystem::last_write_time(filepath, err));
 }
+
+BOOST_AUTO_TEST_CASE(download_test) 
+{
+	boost::system::error_code err;
+	std::string ak, sak, bn;
+	boost::filesystem::path filepath = __FILE__;
+	boost::filesystem::path s3_config_path = filepath.parent_path();
+	s3_config_path /= "s3_config.txt";
+	std::ifstream s3_config(s3_config_path.string().c_str());
+	std::getline(s3_config, ak);
+	std::getline(s3_config, sak);
+	s3_config.close();
+	bn = "wuchehaitest";
+	S3Store ss0(ak, sak, bn);
+	
+	std::list<RemoteObject> objects;
+	std::string prefix = "test/tt";
+	ss0.list(prefix, objects);
+	RemoteObject ro0 = objects.front();
+	std::time_t now = std::time(NULL);
+	boost::filesystem::path cur_file = __FILE__;
+	ss0.download(ro0, cur_file.parent_path());
+	boost::filesystem::path tt = cur_file.parent_path();
+	tt /= "tt.txt";
+	std::time_t t = boost::filesystem::last_write_time(tt, err);
+	BOOST_CHECK_GE(t, now);
+	std::size_t file_size = boost::filesystem::file_size(tt, err);
+	BOOST_CHECK_GT(file_size, 0);
+}

@@ -43,13 +43,13 @@ BackupObject::BackupObject(const char * uri)
 }
 
 const std::string& 
-BackupObject::uri()
+BackupObject::uri() const
 {
 	return object_uri;
 }
 
 const std::time_t&
-BackupObject::updated_at()
+BackupObject::updated_at() const
 {
 	return object_updated_at;
 }

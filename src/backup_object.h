@@ -14,10 +14,10 @@ public:
 	BackupObject(const char *, const std::time_t&);
 	BackupObject(const char *);
 	
-	const std::string& uri();
+	const std::string& uri() const;
 	int set_uri(const std::string&);
 	int set_uri(const char *);
-	const std::time_t& updated_at();
+	const std::time_t& updated_at() const;
 	int set_updated_at(const std::time_t&);
 	int set_status(Status);
 	Status status();
