@@ -12,7 +12,7 @@ Backup::backup(const boost::filesystem::path& backup_dir, const std::string& bac
 			LocalObject::populate_local_objects_table(backup_dir, backup_prefix); // multi-thread
 			RemoteObject::populate_remote_objects_table(remote_store, backup_dir, backup_prefix);
 			remote_store->upload(LocalObject::find_to_upload());
-			remote_store->delete(RemoteObject::find_to_delete());
+			//remote_store->delete(RemoteObject::find_to_delete());
 			
 			// backup
 			// select

@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(list_test)
 	bn = "wuchehaitest";
 	S3Store ss0(ak, sak, bn);
 	std::list<RemoteObject> objects;
-	std::string prefix = "test";
+	std::string prefix = "test/t";
 	ss0.list(prefix, objects);
 	
 	objects.sort(compare);
@@ -51,4 +51,29 @@ BOOST_AUTO_TEST_CASE(list_test)
 	BOOST_CHECK_EQUAL(tt.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(tt.uri(), "test/tt.txt");
 	BOOST_CHECK_EQUAL(tt.updated_at(), std::time_t(1311394630UL));
+}
+
+BOOST_AUTO_TEST_CASE(upload_test) 
+{
+	boost::system::error_code err;
+	std::string ak, sak, bn;
+	boost::filesystem::path filepath = __FILE__;
+	boost::filesystem::path s3_config_path = filepath.parent_path();
+	s3_config_path /= "s3_config.txt";
+	std::ifstream s3_config(s3_config_path.string().c_str());
+	std::getline(s3_config, ak);
+	std::getline(s3_config, sak);
+	s3_config.close();
+	bn = "wuchehaitest";
+	S3Store ss0(ak, sak, bn);
+	LocalObject lo0(filepath, filepath.parent_path(), "");
+	ss0.upload(lo0);
+	std::list<RemoteObject> objects;
+	std::string prefix = "test/s3_store_test.cpp";
+	ss0.list(prefix, objects);
+	BOOST_CHECK_GE(objects.size(), 1);
+	RemoteObject obj = objects.front();
+	BOOST_CHECK_EQUAL(obj.status(), BackupObject::Valid);
+	BOOST_CHECK_EQUAL(obj.uri(), prefix);
+	//BOOST_CHECK_EQUAL(obj.updated_at(), boost::filesystem::last_write_time(filepath, err));
 }

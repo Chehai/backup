@@ -4,6 +4,7 @@
 #include "remote_object.h"
 #include "local_object.h"
 class RemoteObject;
+class LocalObject;
 class RemoteStore {
 public:
 	enum Status {

@@ -30,7 +30,10 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	}	
 	set_updated_at(t);
 	
-	local_file_size = boost::filesystem::file_size(local_fs_path);
+	local_file_size = boost::filesystem::file_size(local_fs_path, err);
+	if (err.value()) {
+		set_status(BackupObject::Invalid);
+	}
 }
 
 int

@@ -16,6 +16,7 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 	BOOST_CHECK_EQUAL(lo0.uri(), file_uri.string());
 	BOOST_CHECK_EQUAL(lo0.updated_at(), t);
 	BOOST_CHECK_EQUAL(lo0.status(), BackupObject::Valid);
+	BOOST_CHECK_EQUAL(lo0.size(), boost::filesystem::file_size(file_path));
 	
 	std::string backup_prefix = "aaa";
 	LocalObject lo1(file_path, file_path.parent_path().parent_path(), backup_prefix);
@@ -26,6 +27,7 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 	BOOST_CHECK_EQUAL(lo1.uri(), backup_prefix + file_uri.string());
 	BOOST_CHECK_EQUAL(lo1.updated_at(), t);
 	BOOST_CHECK_EQUAL(lo1.status(), BackupObject::Valid);
+	BOOST_CHECK_EQUAL(lo0.size(), boost::filesystem::file_size(file_path));
 	
 	file_path = "no_such_dir/no_such_file";
 	LocalObject lo2(file_path, file_path.parent_path(), backup_prefix);

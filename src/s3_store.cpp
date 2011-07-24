@@ -125,10 +125,25 @@ S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects
 	return 0;
 }
 
-int
-S3Store::s3_upload_object_callback(int bufferSize, char *buffer, void *callbackData)
+S3Store::S3UploadObjectCallbackData::S3UploadObjectCallbackData(std::ifstream& f, std::streamsize s)
+: read_count(0), file_size(s), file(f)
 {
-	return 0;
+}
+
+int
+S3Store::s3_upload_object_callback(int buffer_size, char * buffer, void * callback_data)
+{
+	S3UploadObjectCallbackData * upload_object_callback_data = (S3UploadObjectCallbackData *)callback_data;
+	
+	if (upload_object_callback_data->read_count == upload_object_callback_data->file_size) {
+		return 0;
+	}
+	std::streamsize count = upload_object_callback_data->file.readsome(buffer, buffer_size);
+	if (count < 0) {
+		return -1;
+	}
+	upload_object_callback_data->read_count += count;
+	return count;
 }
 
 int
@@ -139,5 +154,12 @@ S3Store::upload(LocalObject& lo)
         { &s3_response_properties_callback, &s3_response_complete_callback },
         &s3_upload_object_callback
     };
-	S3_put_object(&s3_bucket_context, lo.uri().c_str(), lo.size(), NULL, NULL, &upload_object_handler, NULL);
+	std::string key = lo.uri();
+	key += '.';
+	key += boost::lexical_cast<std::string>(lo.updated_at());
+	key += ".u";
+	std::ifstream local_file;
+	local_file.open(lo.fs_path().string().c_str(), std::ios::binary);
+	S3Store::S3UploadObjectCallbackData upload_object_callback_data(local_file, lo.size());
+	S3_put_object(&s3_bucket_context, key.c_str(), lo.size(), NULL, NULL, &upload_object_handler, &upload_object_callback_data);
 }

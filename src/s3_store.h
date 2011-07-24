@@ -21,6 +21,13 @@ private:
 		std::list<RemoteObject>& s3_objects;
 		S3ListBucketCallbackData(std::list<RemoteObject>&); 
 	};
+	class S3UploadObjectCallbackData {
+	public:
+		std::streamsize file_size;
+		std::ifstream& file;
+		std::streamsize read_count;
+		S3UploadObjectCallbackData(std::ifstream&, std::streamsize);
+	};
 	std::string s3_access_key;
 	std::string s3_secret_access_key;
 	std::string s3_bucket_name;
