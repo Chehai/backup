@@ -77,3 +77,30 @@ BOOST_AUTO_TEST_CASE(upload_test)
 	BOOST_CHECK_EQUAL(obj.uri(), prefix);
 	//BOOST_CHECK_EQUAL(obj.updated_at(), boost::filesystem::last_write_time(filepath, err));
 }
+
+BOOST_AUTO_TEST_CASE(unload_test) 
+{
+	boost::system::error_code err;
+	std::string ak, sak, bn;
+	boost::filesystem::path filepath = __FILE__;
+	boost::filesystem::path s3_config_path = filepath.parent_path();
+	s3_config_path /= "s3_config.txt";
+	std::ifstream s3_config(s3_config_path.string().c_str());
+	std::getline(s3_config, ak);
+	std::getline(s3_config, sak);
+	s3_config.close();
+	bn = "wuchehaitest";
+	S3Store ss0(ak, sak, bn);
+	RemoteObject ro0;
+	ro0.set_uri("test/delete");
+	ss0.unload(ro0);
+	std::list<RemoteObject> objects;
+	std::string prefix = "test/delete";
+	ss0.list(prefix, objects);
+	BOOST_CHECK_GE(objects.size(), 1);
+	RemoteObject obj = objects.front();
+	BOOST_CHECK_EQUAL(obj.status(), BackupObject::Valid);
+	BOOST_CHECK_EQUAL(obj.uri(), prefix);
+	BOOST_CHECK_EQUAL(obj.action(), 'd');
+	//BOOST_CHECK_EQUAL(obj.updated_at(), boost::filesystem::last_write_time(filepath, err));
+}

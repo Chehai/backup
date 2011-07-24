@@ -42,3 +42,18 @@ RemoteStore::upload(LocalObject& local_object)
 {
 	return 0;
 }
+
+int
+RemoteStore::unload(std::list<RemoteObject>& remote_objects)
+{
+	for (std::list<RemoteObject>::iterator iter = remote_objects.begin(); iter != remote_objects.end(); ++iter) {
+		unload(*iter);
+	}
+	return 0;
+}
+
+int
+RemoteStore::unload(RemoteObject& remote_object)
+{
+	return 0;
+}
