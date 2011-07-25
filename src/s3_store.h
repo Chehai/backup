@@ -26,10 +26,10 @@ private:
 	};
 	class S3UploadObjectCallbackData {
 	public:
-		std::streamsize file_size;
+		std::size_t file_size;
 		std::ifstream& file;
 		std::streamsize read_count;
-		S3UploadObjectCallbackData(std::ifstream&, std::streamsize);
+		S3UploadObjectCallbackData(std::ifstream&, std::size_t);
 	};
 	class S3UnloadObjectCallbackData {
 	public:

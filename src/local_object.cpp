@@ -30,10 +30,7 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	}	
 	set_updated_at(t);
 	
-	local_file_size = boost::filesystem::file_size(local_fs_path, err);
-	if (err.value()) {
-		set_status(BackupObject::Invalid);
-	}
+	set_size();
 }
 
 int
@@ -52,7 +49,7 @@ LocalObject::insert_to_db()
 	return 0;
 }
 
-size_t
+std::size_t
 LocalObject::size()
 {
 	return local_file_size;
@@ -66,6 +63,19 @@ int
 LocalObject::set_fs_path(const boost::filesystem::path& p)
 {
 	local_fs_path = p;
+	return 0;
+}
+
+int
+LocalObject::set_size()
+{
+	boost::system::error_code err;
+	local_file_size = boost::filesystem::file_size(local_fs_path, err);
+	if (err.value()) {
+		local_file_size = 0;
+		set_status(BackupObject::Invalid);
+		return -1;
+	}
 	return 0;
 }
 
@@ -105,6 +115,7 @@ LocalObject::new_from_sqlite3(LocalObject& lo, int count, char ** results, char 
 			return -1;
 		}
 	}
+	lo.set_size();
 	lo.set_status(BackupObject::Valid);
 	return 0;
 }

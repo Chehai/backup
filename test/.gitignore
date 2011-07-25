@@ -8,3 +8,5 @@ s3_store_test
 remote_object_test
 .DS_Store
 s3_config.txt
+backup_test
+backup

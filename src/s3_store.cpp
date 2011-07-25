@@ -125,7 +125,7 @@ S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects
 	return 0;
 }
 
-S3Store::S3UploadObjectCallbackData::S3UploadObjectCallbackData(std::ifstream& f, std::streamsize s)
+S3Store::S3UploadObjectCallbackData::S3UploadObjectCallbackData(std::ifstream& f, std::size_t s)
 : read_count(0), file_size(s), file(f)
 {
 }
@@ -139,7 +139,10 @@ S3Store::s3_upload_object_callback(int buffer_size, char * buffer, void * callba
 		return 0;
 	}
 	std::streamsize count = upload_object_callback_data->file.readsome(buffer, buffer_size);
+	
 	if (count < 0) {
+		std::cout << "Upload callback fail : " << buffer_size << std::endl;
+		 
 		return -1;
 	}
 	upload_object_callback_data->read_count += count;
@@ -176,7 +179,7 @@ S3Store::upload(LocalObject& lo)
         { &s3_response_properties_callback, &s3_response_complete_callback },
         &s3_upload_object_callback
     };
-	std::string key = s3_object_key(lo);
+	std::string key = s3_object_key(lo); 	
 	std::ifstream local_file;
 	local_file.open(lo.fs_path().string().c_str(), std::ios::binary);
 	S3Store::S3UploadObjectCallbackData upload_object_callback_data(local_file, lo.size());

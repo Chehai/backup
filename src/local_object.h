@@ -11,7 +11,8 @@ public:
 	boost::filesystem::path& fs_path();
 	int insert_to_db();
 	int set_fs_path(const boost::filesystem::path&);
-	size_t size();
+	int set_size();
+	std::size_t size();
 	static int sqlite3_find_by_callback(void * data , int count, char ** results, char ** columns);
 	static int populate_local_objects_table(const boost::filesystem::path&, const std::string&);
 	static LocalObject find_by_uri(const std::string&);
