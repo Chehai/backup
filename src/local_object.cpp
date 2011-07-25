@@ -12,14 +12,15 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	
 	set_status(BackupObject::Valid);
 	
+	boost::filesystem::path real_backup_dir, relative_path, uri_path;
+	real_backup_dir = backup_dir.filename().string() == "." ? backup_dir.parent_path() : backup_dir;
 	boost::filesystem::path::iterator file_path_iter = file_path.begin();
-	boost::filesystem::path::iterator backup_path_iter = backup_dir.begin();
-	boost::filesystem::path relative_path, uri_path;
-	for(; file_path_iter != file_path.end() && backup_path_iter != backup_dir.end(); ++file_path_iter, ++backup_path_iter);
+	boost::filesystem::path::iterator backup_path_iter = real_backup_dir.begin();
+	for(; file_path_iter != file_path.end() && backup_path_iter != real_backup_dir.end(); ++file_path_iter, ++backup_path_iter);
 	for (; file_path_iter != file_path.end(); ++file_path_iter) {
 		relative_path /= *file_path_iter;
 	}
-	uri_path = backup_dir.filename();
+	uri_path = real_backup_dir.filename();
 	uri_path /= relative_path;
 	set_uri(backup_prefix + uri_path.string());
 	
