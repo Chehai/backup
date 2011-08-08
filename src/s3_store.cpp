@@ -125,27 +125,27 @@ S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects
 	return 0;
 }
 
-S3Store::S3UploadObjectCallbackData::S3UploadObjectCallbackData(std::ifstream& f, std::size_t s)
+S3Store::S3PutObjectCallbackData::S3PutObjectCallbackData(std::ifstream& f, std::size_t s)
 : read_count(0), file_size(s), file(f)
 {
 }
 
 int
-S3Store::s3_upload_object_callback(int buffer_size, char * buffer, void * callback_data)
+S3Store::s3_put_object_callback(int buffer_size, char * buffer, void * callback_data)
 {
-	S3UploadObjectCallbackData * upload_object_callback_data = (S3UploadObjectCallbackData *)callback_data;
+	S3PutObjectCallbackData * put_object_callback_data = (S3PutObjectCallbackData *)callback_data;
 	
-	if (upload_object_callback_data->read_count == upload_object_callback_data->file_size) {
+	if (put_object_callback_data->read_count == put_object_callback_data->file_size) {
 		return 0;
 	}
-	std::streamsize count = upload_object_callback_data->file.readsome(buffer, buffer_size);
+	std::streamsize count = put_object_callback_data->file.readsome(buffer, buffer_size);
 	
 	if (count < 0) {
 		std::cout << "Upload callback fail : " << buffer_size << std::endl;
 		 
 		return -1;
 	}
-	upload_object_callback_data->read_count += count;
+	put_object_callback_data->read_count += count;
 	return count;
 }
 
@@ -172,80 +172,80 @@ S3Store::s3_object_key(const RemoteObject& ro)
 
 
 int
-S3Store::upload(LocalObject& lo)
+S3Store::put(LocalObject& lo)
 {	
-    S3PutObjectHandler upload_object_handler =
+    S3PutObjectHandler put_object_handler =
     {
         { &s3_response_properties_callback, &s3_response_complete_callback },
-        &s3_upload_object_callback
+        &s3_put_object_callback
     };
 	std::string key = s3_object_key(lo); 	
 	std::ifstream local_file;
 	local_file.open(lo.fs_path().string().c_str(), std::ios::binary);
-	S3Store::S3UploadObjectCallbackData upload_object_callback_data(local_file, lo.size());
-	S3_put_object(&s3_bucket_context, key.c_str(), lo.size(), NULL, NULL, &upload_object_handler, &upload_object_callback_data);
+	S3Store::S3PutObjectCallbackData put_object_callback_data(local_file, lo.size());
+	S3_put_object(&s3_bucket_context, key.c_str(), lo.size(), NULL, NULL, &put_object_handler, &put_object_callback_data);
 	local_file.close();
 	return 0;
 }
 
-S3Store::S3UnloadObjectCallbackData::S3UnloadObjectCallbackData(std::string& key)
+S3Store::S3DelObjectCallbackData::S3DelObjectCallbackData(std::string& key)
 : content(key), read_count(0)
 {
 }
 
 int
-S3Store::s3_unload_object_callback(int buffer_size, char * buffer, void * callback_data)
+S3Store::s3_del_object_callback(int buffer_size, char * buffer, void * callback_data)
 {
-	S3UnloadObjectCallbackData * unload_object_callback_data = (S3UnloadObjectCallbackData *)callback_data;
+	S3DelObjectCallbackData * del_object_callback_data = (S3DelObjectCallbackData *)callback_data;
 	
-	if (unload_object_callback_data->read_count == unload_object_callback_data->content.length()) {
+	if (del_object_callback_data->read_count == del_object_callback_data->content.length()) {
 		return 0;
 	}
-	std::size_t count = unload_object_callback_data->content.copy(buffer, buffer_size, unload_object_callback_data->read_count);
-	unload_object_callback_data->read_count += count;
+	std::size_t count = del_object_callback_data->content.copy(buffer, buffer_size, del_object_callback_data->read_count);
+	del_object_callback_data->read_count += count;
 	return count;
 }
 
 int
-S3Store::unload(RemoteObject& ro)
+S3Store::del(RemoteObject& ro)
 {
-    S3PutObjectHandler unload_object_handler =
+    S3PutObjectHandler del_object_handler =
     {
         { &s3_response_properties_callback, &s3_response_complete_callback },
-        &s3_unload_object_callback
+        &s3_del_object_callback
     };
 	std::string key = ro.uri();
 	key += '.';
 	key += boost::lexical_cast<std::string>(std::time(NULL));
 	key += ".d";
-	S3Store::S3UnloadObjectCallbackData unload_object_callback_data(key);
-	S3_put_object(&s3_bucket_context, key.c_str(), key.length(), NULL, NULL, &unload_object_handler, &unload_object_callback_data);
+	S3Store::S3DelObjectCallbackData del_object_callback_data(key);
+	S3_put_object(&s3_bucket_context, key.c_str(), key.length(), NULL, NULL, &del_object_handler, &del_object_callback_data);
 	return 0;	
 }
 
-S3Store::S3DownloadObjectCallbackData::S3DownloadObjectCallbackData(std::ofstream& f) 
+S3Store::S3GetObjectCallbackData::S3GetObjectCallbackData(std::ofstream& f) 
 : file(f)
 {	
 }
 
 
 S3Status
-S3Store::s3_download_object_callback(int buffer_size, const char * buffer, void * callback_data)
+S3Store::s3_get_object_callback(int buffer_size, const char * buffer, void * callback_data)
 {
-	S3DownloadObjectCallbackData * download_object_callback_data = (S3DownloadObjectCallbackData *)callback_data;
+	S3GetObjectCallbackData * get_object_callback_data = (S3GetObjectCallbackData *)callback_data;
 	
-	download_object_callback_data->file.write(buffer, buffer_size);
+	get_object_callback_data->file.write(buffer, buffer_size);
 	
 	return S3StatusOK;
 }
 
 int 
-S3Store::download(RemoteObject& ro, const boost::filesystem::path& dir)
+S3Store::get(RemoteObject& ro, const boost::filesystem::path& dir)
 {
-	S3GetObjectHandler download_object_handler = 
+	S3GetObjectHandler get_object_handler = 
     {
         { &s3_response_properties_callback, &s3_response_complete_callback },
-        &s3_download_object_callback
+        &s3_get_object_callback
     };
 	std::string key = s3_object_key(ro);
 	boost::filesystem::path p = dir.parent_path();
@@ -253,8 +253,8 @@ S3Store::download(RemoteObject& ro, const boost::filesystem::path& dir)
 	boost::filesystem::create_directories(p.parent_path());
 	std::ofstream local_file;
 	local_file.open(p.string().c_str(), std::ios::binary | std::ios::trunc);
-	S3Store::S3DownloadObjectCallbackData download_object_callback_data(local_file);
-	S3_get_object(&s3_bucket_context, key.c_str(), NULL, 0, 0, NULL, &download_object_handler, &download_object_callback_data);
+	S3Store::S3GetObjectCallbackData get_object_callback_data(local_file);
+	S3_get_object(&s3_bucket_context, key.c_str(), NULL, 0, 0, NULL, &get_object_handler, &get_object_callback_data);
 	local_file.close();
 	return 0;
 }

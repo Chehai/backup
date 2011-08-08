@@ -22,14 +22,9 @@ public:
 	int set_status(Status);
 	Status status();
 	virtual ~BackupObject();
-	static int init_db();
-	static int init_db(const boost::filesystem::path&);
-	static int close_db();
 protected:
 	std::string object_uri;
 	std::time_t object_updated_at;
 	Status object_status;
-	static boost::filesystem::path objects_db_path;
-	static sqlite3 * objects_db_conn;
 };
 #endif

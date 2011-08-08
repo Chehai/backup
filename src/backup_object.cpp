@@ -1,6 +1,4 @@
 #include "backup_object.h"
-boost::filesystem::path BackupObject::objects_db_path = "objects.db";
-sqlite3 * BackupObject::objects_db_conn = NULL;
 
 BackupObject::~BackupObject()
 {
@@ -86,41 +84,5 @@ int
 BackupObject::set_uri(const char * uri)
 {
 	object_uri = uri ? uri : "";
-	return 0;
-}
-
-
-int
-BackupObject::init_db()
-{
-	if (!objects_db_conn) {
-		if (sqlite3_open(objects_db_path.c_str(), &objects_db_conn) != SQLITE_OK) {
-			close_db();
-			return -1;		
-		}
-	}
-	return 0;
-}
-
-int
-BackupObject::init_db(const boost::filesystem::path& db_path)
-{
-	objects_db_path = db_path;
-	if (!objects_db_conn) {
-		if (sqlite3_open(objects_db_path.c_str(), &objects_db_conn) != SQLITE_OK) {
-			close_db();
-			return -1;		
-		}
-	}
-	return 0;
-}
-
-int
-BackupObject::close_db()
-{
-	if (objects_db_conn) {
-		sqlite3_close(objects_db_conn);
-		objects_db_conn = NULL;
-	}
 	return 0;
 }

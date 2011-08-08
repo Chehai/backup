@@ -16,13 +16,9 @@ public:
 	RemoteStore();
 	virtual ~RemoteStore(); 
 	virtual int list(const std::string& prefix, std::list<RemoteObject>& remote_objects);
-	int upload(std::list<LocalObject>& local_objects);
-	int unload(std::list<RemoteObject>&);
-	int download(std::list<RemoteObject>&, const boost::filesystem::path&);
-	
-	virtual int upload(LocalObject&);
-	virtual int unload(RemoteObject&);
-	virtual int download(RemoteObject&, const boost::filesystem::path&);
+	virtual int put(LocalObject&);
+	virtual int del(RemoteObject&);
+	virtual int get(RemoteObject&, const boost::filesystem::path&);
 	
 private:
 	Status store_status;

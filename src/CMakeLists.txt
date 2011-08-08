@@ -1,5 +1,5 @@
-find_package(Boost 1.46.1 COMPONENTS date_time filesystem system regex)
+find_package(Boost 1.46.1 COMPONENTS date_time filesystem system regex thread)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
-add_library(libbackup backup.cpp backup_object.cpp local_object.cpp remote_object.cpp remote_store.cpp s3_store.cpp)
-target_link_libraries(libbackup ${Boost_LIBRARIES} s3 sqlite3)
+add_library(backup backup_object.cpp backup_task.cpp del_task.cpp get_task.cpp local_object.cpp parent_task.cpp put_task.cpp remote_object.cpp remote_store.cpp restore_task.cpp s3_store.cpp task.cpp task_queue.cpp thread_pool.cpp)
+target_link_libraries(backup ${Boost_LIBRARIES} s3 sqlite3)

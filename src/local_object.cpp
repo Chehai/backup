@@ -1,6 +1,6 @@
 #include "local_object.h"
 
-std::list<LocalObject> LocalObject::objects_to_upload;
+std::string LocalObject::find_by_uri_sql = "SELECT * FROM local_objects WHERE uri = ?";
 
 LocalObject::LocalObject()
 {	
@@ -35,7 +35,7 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 }
 
 int
-LocalObject::insert_to_db()
+LocalObject::insert_to_db(sqlite3 * objects_db_conn)
 {
 	std::string sql = "INSERT INTO local_objects(fs_path, updated_at, uri) VALUES('";
 	sql += local_fs_path.string();
@@ -55,11 +55,13 @@ LocalObject::size()
 {
 	return local_file_size;
 }
+
 boost::filesystem::path&
 LocalObject::fs_path()
 {
 	return local_fs_path;
 }
+
 int 
 LocalObject::set_fs_path(const boost::filesystem::path& p)
 {
@@ -81,7 +83,7 @@ LocalObject::set_size()
 }
 
 int 
-LocalObject::populate_local_objects_table(const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
+LocalObject::populate_local_objects_table(sqlite3 * objects_db_conn, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
 
 	std::string sql = "DROP TABLE IF EXISTS local_objects";
@@ -96,7 +98,7 @@ LocalObject::populate_local_objects_table(const boost::filesystem::path& backup_
 	for (; iter != end_of_dir; ++iter) {
 		if (boost::filesystem::is_regular_file(iter->path())) {
 			LocalObject lo(iter->path(), backup_dir, backup_prefix);
-			lo.insert_to_db();
+			lo.insert_to_db(objects_db_conn);
 		}
 	}
 }
@@ -129,7 +131,7 @@ LocalObject::sqlite3_find_by_callback(void * data , int count, char ** results, 
 }
 
 LocalObject
-LocalObject::find_by_uri(const std::string& uri)
+LocalObject::find_by_uri(sqlite3 * objects_db_conn, const std::string& uri)
 {
 	std::string sql = "SELECT * FROM local_objects WHERE uri = '";
 	sql += uri;
@@ -143,23 +145,24 @@ LocalObject::find_by_uri(const std::string& uri)
 }
 
 int
-LocalObject::sqlite3_find_to_upload_callback(void * data , int count, char ** results, char ** columns)
+LocalObject::sqlite3_find_to_put_callback(void * data , int count, char ** results, char ** columns)
 {
+	std::list<LocalObject> * objects_to_put = (std::list<LocalObject> *)data;
 	LocalObject lo;
 	lo.set_status(BackupObject::Invalid);
 	new_from_sqlite3(lo, count, results, columns);
 	if (lo.status() == BackupObject::Valid) {
-		objects_to_upload.push_back(lo);
+		objects_to_put->push_back(lo);
 	}
 	return 0;
 }
 
-std::list<LocalObject>&
-LocalObject::find_to_upload()
+int
+LocalObject::find_to_put(sqlite3 * objects_db_conn, std::list<LocalObject>& res)
 {
 	std::string sql = "SELECT lo.* FROM local_objects lo LEFT JOIN remote_objects ro ON lo.uri = ro.uri AND lo.updated_at = ro.updated_at WHERE ro.uri IS NULL";
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_to_upload_callback, NULL, NULL) != SQLITE_OK) {
+	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_to_put_callback, &res, NULL) != SQLITE_OK) {
 		;
 	}
-	return objects_to_upload;
+	return 0;
 }

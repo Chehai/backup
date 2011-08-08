@@ -1,5 +1,5 @@
 #include <boost/program_options.hpp>
-#include "src/backup.h"
+#include "src/backup_task.h"
 #include "src/s3_store.h"
 
 int
@@ -94,9 +94,12 @@ main(int argc, char** argv)
 	}
 	
 	S3Store remote_store(s3_access_key, s3_secret_key, s3_bucket_name);
-
-	Backup backup(&remote_store, db_path);
-
-	backup.backup(backup_dir, backup_prefix);
+	
+	ParentTask m;
+	ThreadPool tp(8, 4);
+	new BackupTask(tp, remote_store, backup_dir, backup_prefix, m);
+	tp.pushs(m.children());
+	tp.start();
+	m.wait();
 	return 0;
 }
