@@ -1,0 +1,34 @@
+#ifndef BACKUP_TASK_H
+#define BACKUP_TASK_H
+#include "common.h"
+#include "parent_task.h"
+#include "remote_store.h"
+#include "local_object.h"
+#include "thread_pool.h"
+#include "put_task.h"
+#include "del_task.h"
+class BackupTask : public ParentTask
+{
+public:
+	BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, ParentTask& m);
+	int run();
+private:
+	ParentTask * backup;
+	RemoteStore * remote_store;
+	boost::filesystem::path objects_db_path;
+	sqlite3 * objects_db_conn;
+	boost::filesystem::path backup_dir;
+	std::string backup_prefix;
+	std::list<LocalObject> local_objects_to_put;
+	std::list<RemoteObject> remote_objects_to_del;
+	std::list<RemoteObject> remote_objects_to_get;
+	ThreadPool& thread_pool;
+	ParentTask& parent_task;
+	bool dir_ok(const boost::filesystem::path&);
+	int open_database();
+	int close_database();
+	int populate_local_objects_table();
+	int populate_remote_objects_table();
+	int find_local_objects_backup();
+};
+#endif
