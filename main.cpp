@@ -97,9 +97,9 @@ main(int argc, char** argv)
 	
 	ParentTask m;
 	ThreadPool tp(8, 4);
-	new BackupTask(tp, remote_store, backup_dir, backup_prefix, m);
+	new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
 	tp.pushs(m.children());
 	tp.start();
-	m.wait();
+	m.wait_children();
 	return 0;
 }

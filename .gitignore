@@ -5,3 +5,6 @@ backup
 cmake_install.cmake
 .DS_Store
 test_objects.db
+backup.cfg
+objects.db
+main
