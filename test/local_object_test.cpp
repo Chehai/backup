@@ -38,26 +38,28 @@ BOOST_AUTO_TEST_CASE(populate_local_objects_table_test)
 {
 	boost::system::error_code err;
 	boost::filesystem::path test_db_path = "test_objects.db";
-	BackupObject::init_db(test_db_path);
+	sqlite3 * objects_db_conn;
+	sqlite3_open(test_db_path.c_str(), &objects_db_conn);
 	boost::filesystem::path file_path = __FILE__;
-	LocalObject::populate_local_objects_table(file_path.parent_path(), "");
+	LocalObject::populate_local_objects_table(objects_db_conn, file_path.parent_path(), "");
 	std::time_t t = boost::filesystem::last_write_time(file_path, err);
 	LocalObject lo0(file_path, file_path.parent_path(), "");
-	LocalObject res0 = LocalObject::find_by_uri(lo0.uri());
+	LocalObject res0 = LocalObject::find_by_uri(objects_db_conn, lo0.uri());
 	BOOST_CHECK_EQUAL(res0.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(res0.uri(), lo0.uri());
 	BOOST_CHECK_EQUAL(res0.updated_at(), lo0.updated_at());
 	BOOST_CHECK_EQUAL(res0.fs_path(), lo0.fs_path());
-	BackupObject::close_db();
+	sqlite3_close(objects_db_conn);
 }
 
-BOOST_AUTO_TEST_CASE(find_to_upload_test)
+BOOST_AUTO_TEST_CASE(find_to_put_test)
 {
 	boost::system::error_code err;
 	boost::filesystem::path test_db_path = "test_objects.db";
-	BackupObject::init_db(test_db_path);
+	sqlite3 * objects_db_conn;
+	sqlite3_open(test_db_path.c_str(), &objects_db_conn);
 	boost::filesystem::path file_path = __FILE__;
-	LocalObject::populate_local_objects_table(file_path.parent_path(), file_path.parent_path().parent_path().string() + "/");
+	LocalObject::populate_local_objects_table(objects_db_conn, file_path.parent_path(), file_path.parent_path().parent_path().string() + "/");
 	
 	class TestRemoteStore : public RemoteStore {
 		int list(const std::string& prefix, std::list<RemoteObject>& remote_objects) {
@@ -80,9 +82,10 @@ BOOST_AUTO_TEST_CASE(find_to_upload_test)
 		}
 	};
 	TestRemoteStore trs;
-	RemoteObject::populate_remote_objects_table(&trs, file_path.parent_path(), "");
+	RemoteObject::populate_remote_objects_table(objects_db_conn, &trs, file_path.parent_path(), "");
 	
-	std::list<LocalObject>& los = LocalObject::find_to_upload();
+	std::list<LocalObject> los;
+	LocalObject::find_to_put(objects_db_conn, los);
 	BOOST_CHECK_EQUAL(los.empty(), true);
 	
 	class TestRemoteStore2 : public RemoteStore {
@@ -106,10 +109,10 @@ BOOST_AUTO_TEST_CASE(find_to_upload_test)
 		}
 	};
 	TestRemoteStore2 trs2;
-	RemoteObject::populate_remote_objects_table(&trs2, file_path.parent_path(), "");
+	RemoteObject::populate_remote_objects_table(objects_db_conn, &trs2, file_path.parent_path(), "");
 	los.clear();
-	std::list<LocalObject>& los2 = LocalObject::find_to_upload();
+	std::list<LocalObject> los2;
+	LocalObject::find_to_put(objects_db_conn, los2);
 	BOOST_CHECK_EQUAL(los2.empty(), false);
-	
-	BackupObject::close_db();
+	sqlite3_close(objects_db_conn);
 }

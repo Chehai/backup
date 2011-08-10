@@ -4,6 +4,7 @@ PutTask::PutTask(RemoteStore * rs, LocalObject& lo, BackupTask& bt)
 : remote_store(rs), local_object(lo), parent_task(bt)
 {
 	parent_task.add_child(this);
+	set_priority(Task::High);	
 }
 
 int

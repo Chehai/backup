@@ -6,13 +6,18 @@ ThreadPool::ThreadPool(int total_size, int low_size)
 	
 }
 
+ThreadPool::~ThreadPool()
+{
+	thread_pool.interrupt_all();
+	thread_pool.join_all();
+}
+
 int
 ThreadPool::pushs(std::list<Task *>& ts)
 {
 	queue.pushs(ts);
 	return 0;
 }
-
 
 int
 ThreadPool::start()
@@ -32,7 +37,7 @@ ThreadPool::work(Task::Priority pri)
 {
 	for (;;) {
 		Task * t = queue.pop(pri);
-		if (!t) {
+		if (t) {
 			t->run();
 		}
 	}

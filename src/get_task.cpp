@@ -4,6 +4,7 @@ GetTask::GetTask(RemoteStore * rs, RemoteObject& ro, boost::filesystem::path& di
 : remote_store(rs), remote_object(ro), restore_dir(dir), parent_task(t)
 {
 	parent_task.add_child(this);
+	set_priority(Task::High);
 }
 
 int

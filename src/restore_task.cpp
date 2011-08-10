@@ -7,12 +7,13 @@ RestoreTask::RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::pa
 	boost::system::error_code err;
 	boost::filesystem::path cur = boost::filesystem::current_path(err);
 	if (err.value()) {
-		objects_db_path = prefix + restore_dir.filename().string();
+		objects_db_path = prefix + restore_dir.filename().string() + ".db";
 	} else {
 		objects_db_path = cur;
-		objects_db_path /= prefix + restore_dir.filename().string();
+		objects_db_path /= prefix + restore_dir.filename().string() + ".db";
 	}
 	parent_task.add_child(this);
+	set_priority(Task::Low);
 }
 
 int

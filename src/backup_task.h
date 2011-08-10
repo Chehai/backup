@@ -27,8 +27,5 @@ private:
 	bool dir_ok(const boost::filesystem::path&);
 	int open_database();
 	int close_database();
-	int populate_local_objects_table();
-	int populate_remote_objects_table();
-	int find_local_objects_backup();
 };
 #endif

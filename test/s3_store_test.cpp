@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(list_test)
 	BOOST_CHECK_EQUAL(tt.updated_at(), std::time_t(1311394630UL));
 }
 
-BOOST_AUTO_TEST_CASE(upload_test) 
+BOOST_AUTO_TEST_CASE(put_test) 
 {
 	boost::system::error_code err;
 	std::string ak, sak, bn;
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(upload_test)
 	bn = "wuchehaitest";
 	S3Store ss0(ak, sak, bn);
 	LocalObject lo0(filepath, filepath.parent_path(), "");
-	ss0.upload(lo0);
+	ss0.put(lo0);
 	std::list<RemoteObject> objects;
 	std::string prefix = "test/s3_store_test.cpp";
 	ss0.list(prefix, objects);
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(upload_test)
 	//BOOST_CHECK_EQUAL(obj.updated_at(), boost::filesystem::last_write_time(filepath, err));
 }
 
-BOOST_AUTO_TEST_CASE(unload_test) 
+BOOST_AUTO_TEST_CASE(del_test) 
 {
 	boost::system::error_code err;
 	std::string ak, sak, bn;
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(unload_test)
 	S3Store ss0(ak, sak, bn);
 	RemoteObject ro0;
 	ro0.set_uri("test/delete");
-	ss0.unload(ro0);
+	ss0.del(ro0);
 	std::list<RemoteObject> objects;
 	std::string prefix = "test/delete";
 	ss0.list(prefix, objects);
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(unload_test)
 	//BOOST_CHECK_EQUAL(obj.updated_at(), boost::filesystem::last_write_time(filepath, err));
 }
 
-BOOST_AUTO_TEST_CASE(download_test) 
+BOOST_AUTO_TEST_CASE(get_test) 
 {
 	boost::system::error_code err;
 	std::string ak, sak, bn;
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(download_test)
 	RemoteObject ro0 = objects.front();
 	std::time_t now = std::time(NULL);
 	boost::filesystem::path cur_file = __FILE__;
-	ss0.download(ro0, cur_file.parent_path());
+	ss0.get(ro0, cur_file.parent_path());
 	boost::filesystem::path tt = cur_file.parent_path();
 	tt /= "tt.txt";
 	std::time_t t = boost::filesystem::last_write_time(tt, err);

@@ -7,9 +7,6 @@ ParentTask::ParentTask()
 
 ParentTask::~ParentTask()
 {
-	for(std::list<Task *>::iterator iter = children_tasks.begin(); iter != children_tasks.end(); ++iter) {
-		delete *iter;
-	}
 }
 
 int
@@ -19,6 +16,10 @@ ParentTask::wait_children()
 	while (children_not_finish) {
 		children_condition.wait(lk);
 	}
+	for(std::list<Task *>::iterator iter = children_tasks.begin(); iter != children_tasks.end(); ++iter) {
+		delete *iter;
+	}
+	children_tasks.clear();
 	return 0;
 }
 

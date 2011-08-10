@@ -10,3 +10,7 @@ remote_object_test
 s3_config.txt
 backup_test
 backup
+backup.db
+backup_restore_tasks_test
+backup_task_test
+task_queue_test

@@ -12,9 +12,9 @@ int
 TaskQueue::pushs(std::list<Task*>& tasks)
 {
 	boost::mutex::scoped_lock lk(queue_mutex);
-	Task * t = tasks.front();
 	for (std::list<Task *>::iterator iter = tasks.begin(); iter != tasks.end(); ++iter) {
-		t->priority() == Task::High ? high_queue.push_back(*iter) : low_queue.push_back(*iter);
+		Task * t = *iter;
+		t->priority() == Task::High ? high_queue.push_back(t) : low_queue.push_back(t);
 	}
 	queue_condition.notify_all();
 	return 0;
@@ -37,6 +37,7 @@ TaskQueue::pop(Task::Priority pri)
 		std::list<Task*>& queue = high_queue.empty() ? low_queue : high_queue;
 		ret = queue.front();
 		queue.pop_front();
+		
 	}
 	if (!low_queue.empty() || !high_queue.empty()) {
 		queue_condition.notify_one();

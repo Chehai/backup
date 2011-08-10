@@ -1,8 +1,34 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE backup_test
+#define BOOST_TEST_MODULE backup_restore_tasks_test
 #include <boost/test/unit_test.hpp>
-#include "../src/backup.h"
+#include "../src/backup_task.h"
+#include "../src/restore_task.h"
 #include "../src/s3_store.h"
+
+BOOST_AUTO_TEST_CASE(backup_task_constuctor_test)
+{
+	ParentTask m;
+	ThreadPool tp(4, 2);
+	RemoteStore rs;
+	boost::filesystem::path file_path = __FILE__;
+	boost::filesystem::path dir = file_path.parent_path();
+	std::string pre = "";
+	BackupTask * bt = new BackupTask(tp, &rs, dir, pre, m);
+	BOOST_CHECK_EQUAL(m.children().front(), bt);
+}
+
+BOOST_AUTO_TEST_CASE(restore_task_constuctor_test)
+{
+	ParentTask m;
+	ThreadPool tp(4, 2);
+	RemoteStore rs;
+	boost::filesystem::path file_path = __FILE__;
+	boost::filesystem::path dir = file_path.parent_path();
+	std::string pre = "";
+	std::time_t now = std::time(NULL);
+	RestoreTask * rt = new RestoreTask(tp, &rs, dir, pre, now, m);
+	BOOST_CHECK_EQUAL(m.children().front(), rt);
+}
 
 BOOST_AUTO_TEST_CASE(backup_restore_test)
 {
@@ -15,20 +41,23 @@ BOOST_AUTO_TEST_CASE(backup_restore_test)
 	std::getline(s3_config, sak);
 	s3_config.close();
 	bn = "wuchehaitest";
-	S3Store ss0(ak, sak, bn);
-	boost::filesystem::path db = filepath.parent_path();
-	db /= "test_objects.db";
-	Backup bu0(&ss0, db);
-	
+	S3Store ss(ak, sak, bn);
+	ParentTask m;
+	ThreadPool tp(2, 1);
+	tp.start();
 	std::string prefix = "";
 	boost::filesystem::path backup_dir = filepath.parent_path();
 	backup_dir /= "backup";
-	bu0.backup(backup_dir, prefix);
+	BackupTask * bt = new BackupTask(tp, &ss, backup_dir, prefix, m);
+	tp.pushs(m.children());
+	m.wait_children();
 	
 	boost::filesystem::remove_all(backup_dir);
 	boost::filesystem::create_directories(backup_dir);
 	std::time_t now = std::time(NULL);
-	bu0.restore(backup_dir, prefix, now);
+	RestoreTask * rt = new RestoreTask(tp, &ss, backup_dir, prefix, now, m);
+	tp.pushs(m.children());
+	m.wait_children();
 	
 	boost::filesystem::path file1 = backup_dir;
 	file1 /= "file1.txt";

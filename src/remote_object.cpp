@@ -43,11 +43,12 @@ RemoteObject::insert_to_db(sqlite3 * objects_db_conn)
 int 
 RemoteObject::populate_remote_objects_table(sqlite3 * objects_db_conn, RemoteStore * remote_store, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
-
 	std::string sql = "DROP TABLE IF EXISTS remote_objects";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+		std::cout << "pop remote : here3" << std::endl;
 		return -1;
 	}
+	
 	sql = "CREATE TABLE IF NOT EXISTS remote_objects(updated_at INTEGER, uri TEXT, action TEXT)";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 		return -1;
@@ -120,7 +121,7 @@ RemoteObject::sqlite3_find_to_del_callback(void * data , int count, char ** resu
 int
 RemoteObject::find_to_del(sqlite3 *	objects_db_conn, std::list<RemoteObject>& res)
 {
-	std::string sql = "SELECT ro.* FROM remote_objects ro LEFT JOIN local_objects lo ON ro.uri = lo.uri WHERE lo.uri IS NULL";
+	std::string sql = "SELECT ro.* FROM remote_objects ro JOIN (SELECT ro1.uri, MAX(ro1.updated_at) FROM remote_objects ro1 GROUP BY ro1.uri) t ON t.uri = ro.uri LEFT JOIN local_objects lo ON ro.uri = lo.uri WHERE lo.uri IS NULL AND ro.action = 'u'";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_to_del_callback, &res, NULL) != SQLITE_OK) {
 		;
 	}

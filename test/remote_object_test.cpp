@@ -25,7 +25,8 @@ BOOST_AUTO_TEST_CASE(populate_remote_objects_table_test)
 {
 	boost::system::error_code err;
 	boost::filesystem::path test_db_path = "test_objects.db";
-	BackupObject::init_db(test_db_path);
+	sqlite3 * objects_db_conn;
+	sqlite3_open(test_db_path.c_str(), &objects_db_conn);
 	boost::filesystem::path file_path = __FILE__;
 	
 	class TestRemoteStore : public RemoteStore {
@@ -50,22 +51,23 @@ BOOST_AUTO_TEST_CASE(populate_remote_objects_table_test)
 	};
 	TestRemoteStore trs;
 	
-	RemoteObject::populate_remote_objects_table(&trs, file_path.parent_path(), "");
+	RemoteObject::populate_remote_objects_table(objects_db_conn, &trs, file_path.parent_path(), "");
 	std::time_t t = boost::filesystem::last_write_time(file_path, err);
 	RemoteObject ro0(file_path.string(), t, 'u');
-	RemoteObject res0 = RemoteObject::find_by_uri(ro0.uri());
+	RemoteObject res0 = RemoteObject::find_by_uri(objects_db_conn, ro0.uri());
 	BOOST_CHECK_EQUAL(res0.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(res0.uri(), ro0.uri());
 	BOOST_CHECK_EQUAL(res0.updated_at(), ro0.updated_at());
 	BOOST_CHECK_EQUAL(res0.action(), ro0.action());
-	BackupObject::close_db();
+	sqlite3_close(objects_db_conn);
 }
 
-BOOST_AUTO_TEST_CASE(find_to_delete_test)
+BOOST_AUTO_TEST_CASE(find_to_del_test)
 {
 	boost::system::error_code err;
 	boost::filesystem::path test_db_path = "test_objects.db";
-	BackupObject::init_db(test_db_path);
+	sqlite3 * objects_db_conn;
+	sqlite3_open(test_db_path.c_str(), &objects_db_conn);
 	boost::filesystem::path file_path = __FILE__;
 	
 	class TestRemoteStore : public RemoteStore {
@@ -90,26 +92,29 @@ BOOST_AUTO_TEST_CASE(find_to_delete_test)
 	};
 	TestRemoteStore trs;
 	
-	RemoteObject::populate_remote_objects_table(&trs, file_path.parent_path(), "");
-	LocalObject::populate_local_objects_table(file_path.parent_path(), file_path.parent_path().parent_path().string() + "/");
+	RemoteObject::populate_remote_objects_table(objects_db_conn, &trs, file_path.parent_path(), "");
+	LocalObject::populate_local_objects_table(objects_db_conn, file_path.parent_path(), file_path.parent_path().parent_path().string() + "/");
 
-	std::list<RemoteObject>& ros = RemoteObject::find_to_delete();
+	std::list<RemoteObject> ros;
+	RemoteObject::find_to_del(objects_db_conn, ros);
 	BOOST_CHECK_EQUAL(ros.empty(), true);
 	
-	LocalObject::populate_local_objects_table(file_path.parent_path(), file_path.parent_path().parent_path().string() + "/a/");
+	LocalObject::populate_local_objects_table(objects_db_conn, file_path.parent_path(), file_path.parent_path().parent_path().string() + "/a/");
 	
 	ros.clear();
-	std::list<RemoteObject>& ros2 = RemoteObject::find_to_delete();
+	std::list<RemoteObject> ros2;
+	RemoteObject::find_to_del(objects_db_conn, ros2);
 	BOOST_CHECK_EQUAL(ros2.empty(), false);
 	
-	BackupObject::close_db();
+	sqlite3_close(objects_db_conn);
 }
 
-BOOST_AUTO_TEST_CASE(find_to_download_test)
+BOOST_AUTO_TEST_CASE(find_to_get_test)
 {
 	boost::system::error_code err;
 	boost::filesystem::path test_db_path = "test_objects.db";
-	BackupObject::init_db(test_db_path);
+	sqlite3 * objects_db_conn;
+	sqlite3_open(test_db_path.c_str(), &objects_db_conn);
 	boost::filesystem::path file_path = __FILE__;
 	
 	class TestRemoteStore : public RemoteStore {
@@ -136,14 +141,15 @@ BOOST_AUTO_TEST_CASE(find_to_download_test)
 	};
 	TestRemoteStore trs;
 	
-	RemoteObject::populate_remote_objects_table(&trs, file_path.parent_path(), "");
+	RemoteObject::populate_remote_objects_table(objects_db_conn, &trs, file_path.parent_path(), "");
 	std::time_t t = 1310532657;
-	std::list<RemoteObject>& ros = RemoteObject::find_to_download(t);
+	std::list<RemoteObject> ros;
+	RemoteObject::find_to_get(objects_db_conn, t, ros);
 	BOOST_CHECK_EQUAL(ros.size(), 1);
 	RemoteObject res = ros.front();
 	BOOST_CHECK_EQUAL(res.uri(), "t.txt");
 	BOOST_CHECK_EQUAL(res.updated_at(), t - 8);
 	BOOST_CHECK_EQUAL(res.action(), 'u');
 	
-	BackupObject::close_db();
+	sqlite3_close(objects_db_conn);
 }

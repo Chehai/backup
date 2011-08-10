@@ -7,12 +7,13 @@ BackupTask::BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path
 	boost::system::error_code err;
 	boost::filesystem::path cur = boost::filesystem::current_path(err);
 	if (err.value()) {
-		objects_db_path = prefix + backup_dir.filename().string();
+		objects_db_path = prefix + backup_dir.filename().string() + ".db";
 	} else {
 		objects_db_path = cur;
-		objects_db_path /= prefix + backup_dir.filename().string();
+		objects_db_path /= prefix + backup_dir.filename().string() + ".db";
 	}
 	parent_task.add_child(this);
+	set_priority(Task::Low);
 }
 
 int
@@ -47,7 +48,7 @@ BackupTask::dir_ok(const boost::filesystem::path& dir)
 
 int
 BackupTask::run()
-{	
+{		
 	if (dir_ok(backup_dir)) {
 		open_database();
 		LocalObject::populate_local_objects_table(objects_db_conn, backup_dir, backup_prefix);
@@ -59,7 +60,7 @@ BackupTask::run()
 		}
 		for (std::list<RemoteObject>::iterator iter = remote_objects_to_del.begin(); iter != remote_objects_to_del.end(); ++iter) {
 			new DelTask(remote_store, *iter, *this);
-		}
+		}		
 		thread_pool.pushs(children());
 		wait_children();
 		set_status(Task::Successful);

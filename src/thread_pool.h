@@ -5,6 +5,7 @@
 class ThreadPool {
 public:
 	ThreadPool(int, int);
+	~ThreadPool();
 	int start();
 	int pushs(std::list<Task *>&);
 private:
