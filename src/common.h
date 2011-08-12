@@ -14,6 +14,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/program_options.hpp>
 #include <sqlite3.h>
 #include <libs3.h>
 #endif

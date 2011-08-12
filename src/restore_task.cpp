@@ -4,6 +4,7 @@ RestoreTask::RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::pa
 : remote_store(rs), backup_prefix(prefix), objects_db_conn(NULL), thread_pool(tp), timestamp(t), parent_task(m)
 {
 	restore_dir = dir.filename().string() == "." ? dir.parent_path() : dir;
+	boost::filesystem::create_directories(restore_dir);
 	boost::system::error_code err;
 	boost::filesystem::path cur = boost::filesystem::current_path(err);
 	if (err.value()) {

@@ -34,22 +34,6 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	set_size();
 }
 
-int
-LocalObject::insert_to_db(sqlite3 * objects_db_conn)
-{
-	std::string sql = "INSERT INTO local_objects(fs_path, updated_at, uri) VALUES('";
-	sql += local_fs_path.string();
-	sql += "', ";
-	sql += boost::lexical_cast<std::string>(updated_at());
-	sql += ", '";
-	sql += uri();
-	sql += "')";
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-		return -1;
-	}
-	return 0;
-}
-
 std::size_t
 LocalObject::size()
 {
@@ -85,22 +69,40 @@ LocalObject::set_size()
 int 
 LocalObject::populate_local_objects_table(sqlite3 * objects_db_conn, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
-
-	std::string sql = "DROP TABLE IF EXISTS local_objects";
+	std::string sql = "DROP TABLE IF EXISTS local_objects;CREATE TABLE IF NOT EXISTS local_objects(fs_path TEXT, updated_at INTEGER, uri TEXT)";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 		return -1;
 	}
-	sql = "CREATE TABLE IF NOT EXISTS local_objects(fs_path TEXT, updated_at INTEGER, uri TEXT)";
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-		return -1;
+	sqlite3_stmt * stmt = NULL;
+	sql = "INSERT INTO local_objects(fs_path, updated_at, uri) VALUES(?, ?, ?)";
+	if (sqlite3_prepare_v2(objects_db_conn, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
+	    return -1;
 	}
 	boost::filesystem::recursive_directory_iterator iter(backup_dir), end_of_dir;
 	for (; iter != end_of_dir; ++iter) {
 		if (boost::filesystem::is_regular_file(iter->path())) {
 			LocalObject lo(iter->path(), backup_dir, backup_prefix);
-			lo.insert_to_db(objects_db_conn);
+			if (sqlite3_bind_text(stmt, 1, lo.local_fs_path.c_str(), lo.local_fs_path.string().size(), SQLITE_STATIC) != SQLITE_OK) {
+				break;
+			}
+			if (sqlite3_bind_int64(stmt, 2, (sqlite3_int64)lo.updated_at()) != SQLITE_OK) {
+				break;
+			}
+			if (sqlite3_bind_text(stmt, 3, lo.uri().c_str(), lo.uri().size(), SQLITE_STATIC) != SQLITE_OK) {
+				break;
+			}
+			if (sqlite3_step(stmt) != SQLITE_DONE) {
+		    	break;
+		  	}
+			if (sqlite3_reset(stmt) != SQLITE_OK) {
+				break;
+			}			
 		}
 	}
+	if (sqlite3_finalize(stmt) != SQLITE_OK) {
+		return -1;
+	}
+	return 0;
 }
 
 int
@@ -131,7 +133,7 @@ LocalObject::sqlite3_find_by_callback(void * data , int count, char ** results, 
 }
 
 LocalObject
-LocalObject::find_by_uri(sqlite3 * objects_db_conn, const std::string& uri)
+LocalObject::find_by_uri(sqlite3 * objects_db_conn, const std::string& uri) // for test only
 {
 	std::string sql = "SELECT * FROM local_objects WHERE uri = '";
 	sql += uri;
@@ -160,7 +162,7 @@ LocalObject::sqlite3_find_to_put_callback(void * data , int count, char ** resul
 int
 LocalObject::find_to_put(sqlite3 * objects_db_conn, std::list<LocalObject>& res)
 {
-	std::string sql = "SELECT lo.* FROM local_objects lo LEFT JOIN remote_objects ro ON lo.uri = ro.uri AND lo.updated_at = ro.updated_at WHERE ro.uri IS NULL";
+	std::string sql = "SELECT lo.* FROM local_objects lo LEFT JOIN remote_objects ro ON lo.uri = ro.uri AND lo.updated_at <= ro.updated_at WHERE ro.uri IS NULL";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), sqlite3_find_to_put_callback, &res, NULL) != SQLITE_OK) {
 		;
 	}

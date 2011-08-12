@@ -8,7 +8,6 @@ class RemoteObject : public BackupObject {
 public:
 	RemoteObject(const std::string&, const std::time_t&, char);
 	RemoteObject();
-	int insert_to_db(sqlite3 * objects_db_conn);
 	static int populate_remote_objects_table(sqlite3 *, RemoteStore *, const boost::filesystem::path&, const std::string&);
 	static RemoteObject find_by_uri(sqlite3 *, const std::string&);
 	static int sqlite3_find_by_callback(void * data , int count, char ** results, char ** columns);

@@ -6,6 +6,6 @@ add_subdirectory(test)
 find_package(Boost 1.46.1 COMPONENTS filesystem program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
-add_executable(main main.cpp)
-target_link_libraries(main ${Boost_LIBRARIES} backup)
+add_executable(my_backup main.cpp)
+target_link_libraries(my_backup ${Boost_LIBRARIES} backup)
 

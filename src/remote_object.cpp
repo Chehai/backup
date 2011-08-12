@@ -24,42 +24,44 @@ RemoteObject::set_action(char act)
 	return 0;
 }
 
-int
-RemoteObject::insert_to_db(sqlite3 * objects_db_conn)
-{
-	std::string sql = "INSERT INTO remote_objects(updated_at, uri, action) VALUES(";
-	sql += boost::lexical_cast<std::string>(updated_at());
-	sql += ", '";
-	sql += uri();
-	sql += "', '";
-	sql += object_action;
-	sql += "')";
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-		return -1;
-	}
-	return 0;
-}
-
 int 
 RemoteObject::populate_remote_objects_table(sqlite3 * objects_db_conn, RemoteStore * remote_store, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
-	std::string sql = "DROP TABLE IF EXISTS remote_objects";
+
+	std::string sql = "DROP TABLE IF EXISTS remote_objects;CREATE TABLE IF NOT EXISTS remote_objects(updated_at INTEGER, uri TEXT, action TEXT)";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-		std::cout << "pop remote : here3" << std::endl;
 		return -1;
 	}
-	
-	sql = "CREATE TABLE IF NOT EXISTS remote_objects(updated_at INTEGER, uri TEXT, action TEXT)";
-	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-		return -1;
+	sqlite3_stmt * stmt = NULL;
+	sql = "INSERT INTO remote_objects(action, updated_at, uri) VALUES(?, ?, ?)";
+	if (sqlite3_prepare_v2(objects_db_conn, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
+	    return -1;
 	}
 	std::string prefix = backup_prefix + backup_dir.filename().string();
 	std::list<RemoteObject> remote_objects;
 	remote_store->list(prefix, remote_objects);
 	std::list<RemoteObject>::iterator iter;
 	for (iter = remote_objects.begin() ; iter != remote_objects.end(); ++iter) {
-		iter->insert_to_db(objects_db_conn);
+		if (sqlite3_bind_text(stmt, 1, &iter->object_action, 1, SQLITE_STATIC) != SQLITE_OK) {
+			break;
+		}
+		if (sqlite3_bind_int64(stmt, 2, (sqlite3_int64)iter->updated_at()) != SQLITE_OK) {
+			break;
+		}
+		if (sqlite3_bind_text(stmt, 3, iter->uri().c_str(), iter->uri().size(), SQLITE_STATIC) != SQLITE_OK) {
+			break;
+		}
+		if (sqlite3_step(stmt) != SQLITE_DONE) {
+	    	break;
+	  	}
+		if (sqlite3_reset(stmt) != SQLITE_OK) {
+			break;
+		}
 	}
+	if (sqlite3_finalize(stmt) != SQLITE_OK) {
+		return -1;
+	}
+	return 0;
 }
 
 int
@@ -91,7 +93,7 @@ RemoteObject::sqlite3_find_by_callback(void * data , int count, char ** results,
 }
 
 RemoteObject
-RemoteObject::find_by_uri(sqlite3 * objects_db_conn, const std::string& uri)
+RemoteObject::find_by_uri(sqlite3 * objects_db_conn, const std::string& uri) // for test only
 {
 	std::string sql = "SELECT * FROM remote_objects WHERE uri = '";
 	sql += uri;

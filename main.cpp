@@ -1,5 +1,6 @@
-#include <boost/program_options.hpp>
+#include "common.h"
 #include "src/backup_task.h"
+#include "src/restore_task.h"
 #include "src/s3_store.h"
 
 int
@@ -12,10 +13,12 @@ main(int argc, char** argv)
 	std::string s3_secret_key = "";
 	std::string s3_bucket_name = "";
 	boost::filesystem::path db_path = "objects.db";
+	bool restore = false;
 	
 	boost::program_options::options_description basic_options("Basic Options");
     basic_options.add_options()
-        ("help,h", "show help message")
+        ("help,h", "Show help message")
+		("restore,r", "Restore")
         ("config,c", boost::program_options::value<std::string>(&config_file)->default_value("backup.cfg"),
                   "name of a file of a configuration.")
     ;
@@ -24,7 +27,6 @@ main(int argc, char** argv)
 		("backup-dir,b", boost::program_options::value<std::string>(), "Backup Directory")
 		("backup-prefix,p", boost::program_options::value<std::string>(), "Backup Prefix")
 		("backup-database,d", boost::program_options::value<std::string>(), "Backup Database Path")
-		
 	;
 	boost::program_options::options_description s3_options("S3 Options");
 	s3_options.add_options()
@@ -44,8 +46,12 @@ main(int argc, char** argv)
 	boost::program_options::notify(vm);
 
 	if (vm.count("help")) {
-		std::cout << "./backup --help|-h --config|-c --backup-dir|-b --backup-prefix|-p --backup-database|-d" << std::endl;
+		std::cout << "./my_backup --help|-h --config|-c --backup-dir|-b --backup-prefix|-p --backup-database|-d" << std::endl;
 		return 0;
+	}
+	
+	if (vm.count("restore")) {
+		restore = true;
 	}
 
 	std::ifstream ifs(config_file.c_str());
@@ -97,7 +103,12 @@ main(int argc, char** argv)
 	
 	ParentTask m;
 	ThreadPool tp(8, 4);
-	new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+	if (restore) {
+		std::time_t now = std::time(NULL);
+		new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, now, m);
+	} else {
+		new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+	}
 	tp.pushs(m.children());
 	tp.start();
 	m.wait_children();

@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(find_to_put_test)
 			for (; iter != end_of_dir; ++iter) {
 				if (boost::filesystem::is_regular_file(iter->path())) {
 					boost::system::error_code err;
-					std::time_t t = boost::filesystem::last_write_time(iter->path(), err) + 10;
+					std::time_t t = boost::filesystem::last_write_time(iter->path(), err) - 10;
 					RemoteObject ro(iter->path().string(), t, 'u');
 					ro.set_status(BackupObject::Valid);
 					if (err.value()) {
