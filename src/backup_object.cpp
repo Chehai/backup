@@ -9,6 +9,15 @@ BackupObject::BackupObject()
 	set_uri("");
 	set_status(BackupObject::Valid);
 	set_updated_at(std::time_t(0));
+	set_size(0);
+}
+
+BackupObject::BackupObject(const std::string& uri, const std::time_t& t, const std::size_t& sz)
+{
+	set_uri(uri);
+	set_status(BackupObject::Valid);
+	set_updated_at(t);
+	set_size(sz);
 }
 
 BackupObject::BackupObject(const std::string& uri, const std::time_t& t)
@@ -16,6 +25,7 @@ BackupObject::BackupObject(const std::string& uri, const std::time_t& t)
 	set_uri(uri);
 	set_status(BackupObject::Valid);
 	set_updated_at(t);
+	set_size(0);
 }
 
 BackupObject::BackupObject(const std::string& uri)
@@ -23,6 +33,7 @@ BackupObject::BackupObject(const std::string& uri)
 	set_uri(uri);
 	set_status(BackupObject::Valid);
 	set_updated_at(std::time_t(0));
+	set_size(0);
 }
 
 
@@ -31,6 +42,7 @@ BackupObject::BackupObject(const char * uri, const std::time_t& t)
 	set_uri(uri);
 	set_status(BackupObject::Valid);
 	set_updated_at(t);
+	set_size(0);
 }
 
 BackupObject::BackupObject(const char * uri)
@@ -38,6 +50,7 @@ BackupObject::BackupObject(const char * uri)
 	set_uri(uri);
 	set_status(BackupObject::Valid);
 	set_updated_at(std::time_t(0));
+	set_size(0);
 }
 
 const std::string& 
@@ -85,4 +98,17 @@ BackupObject::set_uri(const char * uri)
 {
 	object_uri = uri ? uri : "";
 	return 0;
+}
+
+int
+BackupObject::set_size(std::size_t s)
+{
+	object_size = s;
+	return 0;
+}
+
+std::size_t
+BackupObject::size()
+{
+	return object_size;
 }

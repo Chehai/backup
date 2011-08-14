@@ -65,7 +65,10 @@ RestoreTask::run()
 			return -1;
 		}
 		for (std::list<RemoteObject>::iterator iter = remote_objects_to_get.begin(); iter != remote_objects_to_get.end(); ++iter) {
-			new GetTask(remote_store, *iter, restore_dir, *this);
+			GetTask * t = new GetTask(remote_store, *iter, restore_dir, *this);
+			if (!t) {
+				LOG(FATAL) << "RestoreTask::run: new GetTask failed";
+			}
 		}
 		thread_pool.pushs(children());
 		wait_children();

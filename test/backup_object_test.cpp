@@ -67,4 +67,7 @@ BOOST_AUTO_TEST_CASE(setters_test)
 	std::time(&t);
 	bo.set_updated_at(t);
 	BOOST_CHECK_EQUAL(bo.updated_at(), t);
+	
+	bo.set_size(10);
+	BOOST_CHECK_EQUAL(bo.size(), 10);
 }

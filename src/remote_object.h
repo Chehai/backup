@@ -6,7 +6,7 @@
 class RemoteStore;
 class RemoteObject : public BackupObject {
 public:
-	RemoteObject(const std::string&, const std::time_t&, char);
+	RemoteObject(const std::string&, const std::time_t&, char, const std::size_t& );
 	RemoteObject();
 	static int populate_remote_objects_table(sqlite3 *, RemoteStore *, const boost::filesystem::path&, const std::string&);
 	static RemoteObject find_by_uri(sqlite3 *, const std::string&);

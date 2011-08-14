@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(find_to_put_test)
 				if (boost::filesystem::is_regular_file(iter->path())) {
 					boost::system::error_code err;
 					std::time_t t = boost::filesystem::last_write_time(iter->path(), err);
-					RemoteObject ro(iter->path().string(), t, 'u');
+					RemoteObject ro(iter->path().string(), t, 'u', 50);
 					ro.set_status(BackupObject::Valid);
 					if (err.value()) {
 						ro.set_status(BackupObject::Invalid);
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(find_to_put_test)
 				if (boost::filesystem::is_regular_file(iter->path())) {
 					boost::system::error_code err;
 					std::time_t t = boost::filesystem::last_write_time(iter->path(), err) - 10;
-					RemoteObject ro(iter->path().string(), t, 'u');
+					RemoteObject ro(iter->path().string(), t, 'u', 50);
 					ro.set_status(BackupObject::Valid);
 					if (err.value()) {
 						ro.set_status(BackupObject::Invalid);

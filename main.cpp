@@ -122,11 +122,19 @@ main(int argc, char** argv)
 	for (std::vector<std::string>::iterator iter = backup_dirs.begin(); iter != backup_dirs.end(); ++iter) {
 		boost::filesystem::path backup_dir = *iter;
 		if (restore) {
-			new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, now, m);
-			LOG(INFO) << "restore directory: " << backup_dir << " prefix: " << backup_prefix;
+			RestoreTask * rt = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, now, m);
+			if (!rt) {
+				LOG(FATAL) << "main: new RestoreTask failed";
+			} else {
+				LOG(INFO) << "restore directory: " << backup_dir << " prefix: " << backup_prefix;
+			}
 		} else {
-			new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
-			LOG(INFO) << "backup directory: " << backup_dir << " prefix: " << backup_prefix;
+			BackupTask * bt = new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+			if (!bt) {
+				LOG(FATAL) << "main: new BackupTask failed";
+			} else {
+				LOG(INFO) << "backup directory: " << backup_dir << " prefix: " << backup_prefix;
+			}
 		}
 	}
 	tp.pushs(m.children());

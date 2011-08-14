@@ -100,7 +100,7 @@ S3Store::s3_list_bucket_callback(int is_truncated, const char *next_marker, int 
 				updated_at_str.assign(what[2].first, what[2].second);
 				std::time_t updated_at = boost::lexical_cast<std::time_t>(updated_at_str);
 				char action = *what[3].first;
-				RemoteObject ro(key, updated_at, action);
+				RemoteObject ro(key, updated_at, action, contents[i].size);
 				data->s3_objects.push_back(ro);
 			}
 		} 
@@ -319,6 +319,17 @@ S3Store::get(RemoteObject& ro, const boost::filesystem::path& dir)
 	boost::filesystem::path p = dir.parent_path();
 	p /= ro.uri();
 	boost::system::error_code err;
+
+	if (boost::filesystem::exists(p, err) && !err.value()) {
+		err.clear();
+		std::size_t file_size = boost::filesystem::file_size(p, err);
+		if (!err.value() && file_size == ro.size()) {
+			LOG(INFO) << "S3Store::get finish get (already exists)" << ro.uri();
+			return 0;
+		}
+	}
+	
+	err.clear();
 	boost::filesystem::create_directories(p.parent_path(), err);
 	if (err.value()) {
 		LOG(ERROR) << "S3Store::get: create_directories " << err.message();

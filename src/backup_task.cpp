@@ -78,10 +78,16 @@ BackupTask::run()
 			return -1;
 		}
 		for (std::list<LocalObject>::iterator iter = local_objects_to_put.begin(); iter != local_objects_to_put.end(); ++iter) {
-			new PutTask(remote_store, *iter, *this);
+			PutTask * pt = new PutTask(remote_store, *iter, *this);
+			if (!pt) {
+				LOG(FATAL) << "BackupTask::run: new PutTask failed";
+			}
 		}
 		for (std::list<RemoteObject>::iterator iter = remote_objects_to_del.begin(); iter != remote_objects_to_del.end(); ++iter) {
-			new DelTask(remote_store, *iter, *this);
+			DelTask * dt = new DelTask(remote_store, *iter, *this);
+			if (!dt) {
+				LOG(FATAL) << "BackupTask::run: new DelTask failed";
+			}
 		}		
 		thread_pool.pushs(children());
 		wait_children();

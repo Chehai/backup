@@ -24,10 +24,14 @@ ThreadPool::start()
 {
 	int i;
 	for (i = 0; i < thread_pool_low_size; ++i) {
-		thread_pool.create_thread(boost::bind(&ThreadPool::work, this, Task::Low));
+		if (!thread_pool.create_thread(boost::bind(&ThreadPool::work, this, Task::Low))) {
+			LOG(FATAL) << "ThreadPool::start: create thread failed";
+		}
 	}
 	for (; i < thread_pool_size; ++i) {
-		thread_pool.create_thread(boost::bind(&ThreadPool::work, this, Task::High));
+		if (!thread_pool.create_thread(boost::bind(&ThreadPool::work, this, Task::High))) {
+			LOG(FATAL) << "ThreadPool::start: create thread failed";
+		}
 	}
 	return 0;
 }

@@ -10,8 +10,6 @@ public:
 	LocalObject(const boost::filesystem::path&, const boost::filesystem::path&, const std::string&);
 	boost::filesystem::path& fs_path();
 	int set_fs_path(const boost::filesystem::path&);
-	int set_size();
-	std::size_t size();
 	static int sqlite3_find_by_callback(void * data , int count, char ** results, char ** columns);
 	static int populate_local_objects_table(sqlite3 *, const boost::filesystem::path&, const std::string&);
 	static LocalObject find_by_uri(sqlite3 *, const std::string&);
@@ -20,7 +18,6 @@ public:
 	static int new_from_sqlite3(LocalObject& lo, int count, char ** results, char ** columns);
 private:
 	boost::filesystem::path local_fs_path;
-	size_t local_file_size;
 	static std::string find_by_uri_sql;
 	static std::string find_by_put_sql;
 };

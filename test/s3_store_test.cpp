@@ -125,11 +125,15 @@ BOOST_AUTO_TEST_CASE(get_test)
 	RemoteObject ro0 = objects.front();
 	std::time_t now = std::time(NULL);
 	boost::filesystem::path cur_file = __FILE__;
-	ss0.get(ro0, cur_file.parent_path());
 	boost::filesystem::path tt = cur_file.parent_path();
 	tt /= "tt.txt";
+	boost::filesystem::remove(tt);
+	ss0.get(ro0, cur_file.parent_path());
 	std::time_t t = boost::filesystem::last_write_time(tt, err);
 	BOOST_CHECK_GE(t, now);
 	std::size_t file_size = boost::filesystem::file_size(tt, err);
 	BOOST_CHECK_GT(file_size, 0);
+	ss0.get(ro0, cur_file.parent_path());
+	std::time_t t2 = boost::filesystem::last_write_time(tt, err);
+	BOOST_CHECK_EQUAL(t2, t);	
 }

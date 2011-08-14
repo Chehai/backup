@@ -1,7 +1,7 @@
 #include "remote_object.h"
 
-RemoteObject::RemoteObject(const std::string& uri, const std::time_t& t, char act)
-:BackupObject(uri, t)
+RemoteObject::RemoteObject(const std::string& uri, const std::time_t& t, char act, const std::size_t& sz)
+:BackupObject(uri, t, sz)
 {
 	set_action(act);
 }
@@ -34,13 +34,13 @@ RemoteObject::populate_remote_objects_table(sqlite3 * objects_db_conn, RemoteSto
 		LOG(ERROR) << "RemoteObject::populate_remote_objects_table: remote_store::list failed with " << prefix;
 		return -1;
 	}
-	std::string sql = "DROP TABLE IF EXISTS remote_objects;CREATE TABLE IF NOT EXISTS remote_objects(updated_at INTEGER, uri TEXT, action TEXT)";
+	std::string sql = "DROP TABLE IF EXISTS remote_objects;CREATE TABLE IF NOT EXISTS remote_objects(size INTEGER, updated_at INTEGER, uri TEXT, action TEXT)";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 		LOG(ERROR) << "RemoteObject::populate_remote_objects_table: sqlite3_exec " << sqlite3_errmsg(objects_db_conn);
 		return -1;
 	}
 	sqlite3_stmt * stmt = NULL;
-	sql = "INSERT INTO remote_objects(action, updated_at, uri) VALUES(?, ?, ?)";
+	sql = "INSERT INTO remote_objects(action, updated_at, uri, size) VALUES(?, ?, ?, ?)";
 	if (sqlite3_prepare_v2(objects_db_conn, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
 	    LOG(ERROR) << "RemoteObject::populate_remote_objects_table: sqlite3_prepare_v2 " << sqlite3_errmsg(objects_db_conn);
 		return -1;
@@ -57,6 +57,10 @@ RemoteObject::populate_remote_objects_table(sqlite3 * objects_db_conn, RemoteSto
 		}
 		if (sqlite3_bind_text(stmt, 3, iter->uri().c_str(), iter->uri().size(), SQLITE_STATIC) != SQLITE_OK) {
 			LOG(ERROR) << "RemoteObject::populate_remote_objects_table: sqlite3_bind_text " << sqlite3_errmsg(objects_db_conn);
+			break;
+		}
+		if (sqlite3_bind_int64(stmt, 4, (sqlite3_int64)iter->size()) != SQLITE_OK) {
+			LOG(ERROR) << "RemoteObject::populate_remote_objects_table: sqlite3_bind_int64 " << sqlite3_errmsg(objects_db_conn);
 			break;
 		}
 		if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -86,6 +90,8 @@ RemoteObject::new_from_sqlite3(RemoteObject& ro, int count, char ** results, cha
 			ro.set_uri(results[i]);
 		} else if (column == "action") {
 			ro.set_action(results[i][0]);
+		} else if (column == "size") {
+				ro.set_size(boost::lexical_cast<std::size_t>(results[i]));
 		} else {
 			LOG(ERROR) << "RemoteObject::new_from_sqlite3 unknow column " << column; 
 			return -1;

@@ -31,13 +31,13 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	}	
 	set_updated_at(t);
 	
-	set_size();
-}
-
-std::size_t
-LocalObject::size()
-{
-	return local_file_size;
+	err.clear();
+	std::size_t file_size = boost::filesystem::file_size(local_fs_path, err);
+	if (err.value()) {
+		file_size = 0;
+		set_status(BackupObject::Invalid);
+	}
+	set_size(file_size);
 }
 
 boost::filesystem::path&
@@ -53,29 +53,16 @@ LocalObject::set_fs_path(const boost::filesystem::path& p)
 	return 0;
 }
 
-int
-LocalObject::set_size()
-{
-	boost::system::error_code err;
-	local_file_size = boost::filesystem::file_size(local_fs_path, err);
-	if (err.value()) {
-		local_file_size = 0;
-		set_status(BackupObject::Invalid);
-		return -1;
-	}
-	return 0;
-}
-
 int 
 LocalObject::populate_local_objects_table(sqlite3 * objects_db_conn, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
-	std::string sql = "DROP TABLE IF EXISTS local_objects;CREATE TABLE IF NOT EXISTS local_objects(fs_path TEXT, updated_at INTEGER, uri TEXT)";
+	std::string sql = "DROP TABLE IF EXISTS local_objects;CREATE TABLE IF NOT EXISTS local_objects(size INTEGER, fs_path TEXT, updated_at INTEGER, uri TEXT)";
 	if (sqlite3_exec(objects_db_conn, sql.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
 		LOG(ERROR) << "LocalObject::populate_local_objects_table: sqlite3_exec " << sqlite3_errmsg(objects_db_conn);
 		return -1;
 	}
 	sqlite3_stmt * stmt = NULL;
-	sql = "INSERT INTO local_objects(fs_path, updated_at, uri) VALUES(?, ?, ?)";
+	sql = "INSERT INTO local_objects(fs_path, updated_at, uri, size) VALUES(?, ?, ?, ?)";
 	if (sqlite3_prepare_v2(objects_db_conn, sql.c_str(), sql.length(), &stmt, NULL) != SQLITE_OK) {
 	    LOG(ERROR) << "LocalObject::populate_local_objects_table: sqlite3_prepare_v2 " << sqlite3_errmsg(objects_db_conn);
 		return -1;
@@ -94,6 +81,10 @@ LocalObject::populate_local_objects_table(sqlite3 * objects_db_conn, const boost
 			}
 			if (sqlite3_bind_text(stmt, 3, lo.uri().c_str(), lo.uri().size(), SQLITE_STATIC) != SQLITE_OK) {
 				LOG(ERROR) << "LocalObject::populate_local_objects_table: sqlite3_bind_text " << sqlite3_errmsg(objects_db_conn);
+				break;
+			}
+			if (sqlite3_bind_int64(stmt, 4, (sqlite3_int64)lo.size()) != SQLITE_OK) {
+				LOG(ERROR) << "LocalObject::populate_local_objects_table: sqlite3_bind_int64 " << sqlite3_errmsg(objects_db_conn);
 				break;
 			}
 			if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -124,11 +115,13 @@ LocalObject::new_from_sqlite3(LocalObject& lo, int count, char ** results, char 
 			lo.set_updated_at(boost::lexical_cast<std::time_t>(results[i]));
 		} else if (column == "uri") {
 			lo.set_uri(results[i]);
+		} else if (column == "size") {
+			lo.set_size(boost::lexical_cast<std::size_t>(results[i]));
 		} else {
+			LOG(ERROR) << "LocalObject::new_from_sqlite3 unknow column " << column; 
 			return -1;
 		}
 	}
-	lo.set_size();
 	lo.set_status(BackupObject::Valid);
 	return 0;
 }

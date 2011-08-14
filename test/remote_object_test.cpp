@@ -9,16 +9,19 @@ BOOST_AUTO_TEST_CASE(constructor_test)
 	std::string uri = "abc";
 	std::time_t t;
 	std::time(&t);
-	RemoteObject ro0(uri, t, 'r');
+	RemoteObject ro0(uri, t, 'r', 50);
 	BOOST_CHECK_EQUAL(ro0.uri(), uri);
 	BOOST_CHECK_EQUAL(ro0.updated_at(), t);
 	BOOST_CHECK_EQUAL(ro0.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(ro0.action(), 'r');
+	BOOST_CHECK_EQUAL(ro0.size(), 50);
 	
 	RemoteObject ro1;
 	BOOST_CHECK_EQUAL(ro1.status(), BackupObject::Valid);	
 	BOOST_CHECK_EQUAL(ro1.updated_at(), std::time_t(0));
-	BOOST_CHECK_EQUAL(ro1.action(), char(0));		
+	BOOST_CHECK_EQUAL(ro1.action(), char(0));
+	BOOST_CHECK_EQUAL(ro1.size(), 0);		
+		
 }
 
 BOOST_AUTO_TEST_CASE(populate_remote_objects_table_test)
@@ -38,7 +41,7 @@ BOOST_AUTO_TEST_CASE(populate_remote_objects_table_test)
 				if (boost::filesystem::is_regular_file(iter->path())) {
 					boost::system::error_code err;
 					std::time_t t = boost::filesystem::last_write_time(iter->path(), err);
-					RemoteObject ro(iter->path().string(), t, 'u');
+					RemoteObject ro(iter->path().string(), t, 'u', 50);
 					ro.set_status(BackupObject::Valid);
 					if (err.value()) {
 						ro.set_status(BackupObject::Invalid);
@@ -53,12 +56,13 @@ BOOST_AUTO_TEST_CASE(populate_remote_objects_table_test)
 	
 	RemoteObject::populate_remote_objects_table(objects_db_conn, &trs, file_path.parent_path(), "");
 	std::time_t t = boost::filesystem::last_write_time(file_path, err);
-	RemoteObject ro0(file_path.string(), t, 'u');
+	RemoteObject ro0(file_path.string(), t, 'u', 50);
 	RemoteObject res0 = RemoteObject::find_by_uri(objects_db_conn, ro0.uri());
 	BOOST_CHECK_EQUAL(res0.status(), BackupObject::Valid);
 	BOOST_CHECK_EQUAL(res0.uri(), ro0.uri());
 	BOOST_CHECK_EQUAL(res0.updated_at(), ro0.updated_at());
 	BOOST_CHECK_EQUAL(res0.action(), ro0.action());
+	BOOST_CHECK_EQUAL(res0.size(), ro0.size());
 	sqlite3_close(objects_db_conn);
 }
 
@@ -79,7 +83,7 @@ BOOST_AUTO_TEST_CASE(find_to_del_test)
 				if (boost::filesystem::is_regular_file(iter->path())) {
 					boost::system::error_code err;
 					std::time_t t = boost::filesystem::last_write_time(iter->path(), err);
-					RemoteObject ro(iter->path().string(), t, 'u');
+					RemoteObject ro(iter->path().string(), t, 'u', 50);
 					ro.set_status(BackupObject::Valid);
 					if (err.value()) {
 						ro.set_status(BackupObject::Invalid);
@@ -120,14 +124,14 @@ BOOST_AUTO_TEST_CASE(find_to_get_test)
 	class TestRemoteStore : public RemoteStore {
 		int list(const std::string& prefix, std::list<RemoteObject>& remote_objects) {
 			std::time_t t = 1310532657;
-			RemoteObject ro0("t.txt", t - 10, 'u');
-			RemoteObject ro1("t.txt", t - 9 , 'u');
-			RemoteObject ro2("t.txt", t - 8 , 'u');
-			RemoteObject ro3("t.txt", t + 3600 , 'u');
-			RemoteObject ro4("t.txt", t + 7200 , 'u');
+			RemoteObject ro0("t.txt", t - 10, 'u', 1);
+			RemoteObject ro1("t.txt", t - 9 , 'u', 2);
+			RemoteObject ro2("t.txt", t - 8 , 'u', 3);
+			RemoteObject ro3("t.txt", t + 3600 , 'u', 4);
+			RemoteObject ro4("t.txt", t + 7200 , 'u', 5);
 			
-			RemoteObject ro5("tt.txt", t - 20 , 'u');
-			RemoteObject ro6("tt.txt", t - 10 , 'd');
+			RemoteObject ro5("tt.txt", t - 20 , 'u', 6);
+			RemoteObject ro6("tt.txt", t - 10 , 'd', 7);
 			
 			remote_objects.push_back(ro0);
 			remote_objects.push_back(ro1);
@@ -150,6 +154,7 @@ BOOST_AUTO_TEST_CASE(find_to_get_test)
 	BOOST_CHECK_EQUAL(res.uri(), "t.txt");
 	BOOST_CHECK_EQUAL(res.updated_at(), t - 8);
 	BOOST_CHECK_EQUAL(res.action(), 'u');
+	BOOST_CHECK_EQUAL(res.size(), 3);
 	
 	sqlite3_close(objects_db_conn);
 }
