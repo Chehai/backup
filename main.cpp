@@ -8,6 +8,21 @@ void failure_function_for_glog() {
  	exit(-1);
 }
 
+static boost::posix_time::time_duration get_utc_offset() {
+    const boost::posix_time::ptime utc_now = boost::posix_time::second_clock::universal_time();
+    const boost::posix_time::ptime now = boost::date_time::c_local_adjustor<boost::posix_time::ptime>::utc_to_local(utc_now);
+    return utc_now - now;
+}
+
+static std::time_t convert_to_timestamp(const std::string& timestamp_str)
+{
+	boost::posix_time::ptime timestamp_pt = boost::posix_time::time_from_string(timestamp_str);
+	boost::posix_time::ptime timestamp_utc = timestamp_pt + get_utc_offset();
+	boost::posix_time::ptime epoch(boost::gregorian::date(1970,1,1));
+	boost::posix_time::time_duration::sec_type timestamp_sec = (timestamp_utc - epoch).total_seconds();
+	return (std::time_t)timestamp_sec;
+}
+
 int
 main(int argc, char** argv)
 {
@@ -22,11 +37,14 @@ main(int argc, char** argv)
 	std::string s3_bucket_name = "";
 	boost::filesystem::path db_path = "objects.db";
 	bool restore = false;
-	
+	std::time_t timestamp = std::time(NULL);
+	std::string timestamp_str = boost::posix_time::to_simple_string(boost::date_time::c_local_adjustor<boost::posix_time::ptime>::utc_to_local(boost::posix_time::from_time_t(timestamp)));
+
 	boost::program_options::options_description basic_options("Basic Options");
     basic_options.add_options()
         ("help,h", "Show help message")
 		("restore,r", "Restore")
+		("timestamp,t", boost::program_options::value<std::string>(), "Timestamp")
         ("config,c", boost::program_options::value<std::string>(&config_file)->default_value("backup.cfg"),
                   "name of a file of a configuration.")
     ;
@@ -57,12 +75,18 @@ main(int argc, char** argv)
 		LOG(FATAL) << "parse program options error: " << err.what();
 	}
 	if (vm.count("help")) {
-		std::cout << "./my_backup --help|-h --config|-c --backup-dir|-b --backup-prefix|-p --backup-database|-d" << std::endl;
+		std::cout << "./my_backup --help|-h --config|-c --backup-dir|-b --backup-prefix|-p --backup-database|-d --restore|-r --timestamp|-t" << std::endl;
 		return 0;
 	}
 	
 	if (vm.count("restore")) {
 		restore = true;
+	}
+	
+	if (vm.count("timestamp")) {
+		timestamp_str = vm["timestamp"].as<std::string>();
+		timestamp = convert_to_timestamp(timestamp_str);
+		
 	}
 
 	std::ifstream ifs(config_file.c_str());
@@ -118,15 +142,14 @@ main(int argc, char** argv)
 	
 	ParentTask m;
 	ThreadPool tp(8, 4);
-	std::time_t now = std::time(NULL);	
 	for (std::vector<std::string>::iterator iter = backup_dirs.begin(); iter != backup_dirs.end(); ++iter) {
 		boost::filesystem::path backup_dir = *iter;
 		if (restore) {
-			RestoreTask * rt = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, now, m);
+			RestoreTask * rt = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, timestamp, m);
 			if (!rt) {
 				LOG(FATAL) << "main: new RestoreTask failed";
 			} else {
-				LOG(INFO) << "restore directory: " << backup_dir << " prefix: " << backup_prefix;
+				LOG(INFO) << "restore directory: " << backup_dir << " at " << timestamp_str << " prefix: " << backup_prefix ;
 			}
 		} else {
 			BackupTask * bt = new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);

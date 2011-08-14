@@ -17,6 +17,9 @@
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/program_options.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
 #include <sqlite3.h>
 #include <libs3.h>
 #include <glog/logging.h>
