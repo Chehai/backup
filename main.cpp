@@ -3,11 +3,19 @@
 #include "src/restore_task.h"
 #include "src/s3_store.h"
 
+void failure_function_for_glog() {
+	std::cerr << "exiting..." << std::endl;
+ 	exit(-1);
+}
+
 int
 main(int argc, char** argv)
 {
+	google::InitGoogleLogging(argv[0]);
+	google::InstallFailureFunction(&failure_function_for_glog);
+  
 	std::string config_file;
-	boost::filesystem::path backup_dir;
+	std::vector<std::string> backup_dirs;
 	std::string backup_prefix = "";
 	std::string s3_access_key = "";
 	std::string s3_secret_key = "";
@@ -24,7 +32,7 @@ main(int argc, char** argv)
     ;
 	boost::program_options::options_description backup_options("Backup Options");
 	backup_options.add_options()
-		("backup-dir,b", boost::program_options::value<std::string>(), "Backup Directory")
+		("backup-dirs,b", boost::program_options::value< std::vector<std::string> >(), "Backup Directories")
 		("backup-prefix,p", boost::program_options::value<std::string>(), "Backup Prefix")
 		("backup-database,d", boost::program_options::value<std::string>(), "Backup Database Path")
 	;
@@ -40,11 +48,14 @@ main(int argc, char** argv)
 
     boost::program_options::options_description config_file_options;
     config_file_options.add(backup_options).add(s3_options);
-
-  	boost::program_options::variables_map vm;
-	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, cmdline_options), vm);
-	boost::program_options::notify(vm);
-
+  	
+	boost::program_options::variables_map vm;
+	try {
+		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, cmdline_options), vm);
+		boost::program_options::notify(vm);
+	} catch (boost::program_options::error& err) {
+		LOG(FATAL) << "parse program options error: " << err.what();
+	}
 	if (vm.count("help")) {
 		std::cout << "./my_backup --help|-h --config|-c --backup-dir|-b --backup-prefix|-p --backup-database|-d" << std::endl;
 		return 0;
@@ -63,10 +74,10 @@ main(int argc, char** argv)
         boost::program_options::notify(vm);
     }
 
-    if (vm.count("backup-dir")) {
-		backup_dir = vm["backup-dir"].as<std::string>();
+    if (vm.count("backup-dirs")) {
+		backup_dirs = vm["backup-dirs"].as< std::vector<std::string> >();
     } else {
-		std::cout << "no backup dir" << std::endl;
+		std::cout << "no backup dirs" << std::endl;
 		return -1;
     }
 
@@ -101,16 +112,26 @@ main(int argc, char** argv)
 	
 	S3Store remote_store(s3_access_key, s3_secret_key, s3_bucket_name);
 	
+	if (remote_store.status() == RemoteStore::Invalid) {
+		LOG(FATAL) << "main: cannot initialize S3Store";
+	}
+	
 	ParentTask m;
 	ThreadPool tp(8, 4);
-	if (restore) {
-		std::time_t now = std::time(NULL);
-		new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, now, m);
-	} else {
-		new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+	std::time_t now = std::time(NULL);	
+	for (std::vector<std::string>::iterator iter = backup_dirs.begin(); iter != backup_dirs.end(); ++iter) {
+		boost::filesystem::path backup_dir = *iter;
+		if (restore) {
+			new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, now, m);
+			LOG(INFO) << "restore directory: " << backup_dir << " prefix: " << backup_prefix;
+		} else {
+			new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+			LOG(INFO) << "backup directory: " << backup_dir << " prefix: " << backup_prefix;
+		}
 	}
 	tp.pushs(m.children());
 	tp.start();
 	m.wait_children();
+	LOG(INFO) << "done";
 	return 0;
 }

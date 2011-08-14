@@ -6,7 +6,7 @@ S3Store::S3Store(std::string& ak, std::string& sak, std::string& bn)
 	S3Status status;
 	if (!s3_store_usage_count) {
 		if ((status = S3_initialize("s3", S3_INIT_ALL)) != S3StatusOK) {
-			std::cout << "S3Store::S3Store: Error: " << S3_get_status_name(status) << std::endl;
+			LOG(ERROR) << "S3Store::S3Store: constructor " << S3_get_status_name(status);
 			set_status(S3Store::Invalid);
 			return;
 	    }
@@ -61,17 +61,19 @@ S3Store::s3_response_properties_callback(const S3ResponseProperties *properties,
 }
 
 void 
-S3Store::s3_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
+S3Store::s3_list_bucket_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
 {
     if (error && error->message) {
-		std::cout << "S3Store::s3_list_bucket_complete_callback: Error: Message: " << error->message << std::endl;
-        std::cout << "S3Store::s3_list_bucket_complete_callback: Error: Resource: " << error->resource << std::endl;
-		std::cout << "S3Store::s3_list_bucket_complete_callback: Error: Further Detail: " << error->furtherDetails << std::endl;
+	    S3ListBucketCallbackData * data = (S3ListBucketCallbackData *) callback_data;
+		data->is_successful = false;
+		LOG(ERROR) << "S3Store::s3_list_bucket_response_complete_callback: message: " << error->message;
+        LOG(ERROR) << "S3Store::s3_list_bucket_response_complete_callback: resource: " << error->resource;
+		LOG(ERROR) << "S3Store::s3_list_bucket_response_complete_callback: further detail: " << error->furtherDetails;
 	}
 }
 
 S3Store::S3ListBucketCallbackData::S3ListBucketCallbackData(std::list<RemoteObject>& objects)
-: is_truncated(false), next_marker(""), objects_count(0), s3_objects(objects)
+: is_successful(true), is_truncated(false), next_marker(""), objects_count(0), s3_objects(objects)
 {
 	
 }
@@ -114,19 +116,37 @@ S3Store::list(const std::string& prefix, std::list<RemoteObject>& remote_objects
 	
 	S3ListBucketHandler list_bucket_handler =
     {
-        { &s3_response_properties_callback, &s3_response_complete_callback },
+        { &s3_response_properties_callback, &s3_list_bucket_response_complete_callback },
         &s3_list_bucket_callback
     };
-    
+    LOG(INFO) << "S3Store::list start list " << prefix;
 	S3_list_bucket(&s3_bucket_context, prefix.c_str(), NULL, NULL, 2000, NULL, &list_bucket_handler, &list_bucket_callback_data);
 	while (list_bucket_callback_data.is_truncated) {
 		S3_list_bucket(&s3_bucket_context, prefix.c_str(), list_bucket_callback_data.next_marker.c_str(), NULL, 2000, NULL, &list_bucket_handler, &list_bucket_callback_data);
 	}
-	return 0;
+	if (list_bucket_callback_data.is_successful) {
+		LOG(INFO) << "S3Store::list finish list " << prefix;
+		return 0;
+	} else {
+		LOG(ERROR) << "S3Store::list failed list " << prefix;
+		return -1;
+	}
 }
 
-S3Store::S3PutObjectCallbackData::S3PutObjectCallbackData(std::ifstream& f, std::size_t s)
-: read_count(0), file_size(s), file(f)
+void 
+S3Store::s3_put_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
+{
+    if (error && error->message) {
+		S3PutObjectCallbackData * data = (S3PutObjectCallbackData *)callback_data;
+		data->local_object.set_status(BackupObject::Invalid);
+		LOG(ERROR) << "S3Store::s3_put_response_complete_callback: message: " << error->message;
+        LOG(ERROR) << "S3Store::s3_put_response_complete_callback: resource: " << error->resource;
+		LOG(ERROR) << "S3Store::s3_put_response_complete_callback: further detail: " << error->furtherDetails;
+	}
+}
+
+S3Store::S3PutObjectCallbackData::S3PutObjectCallbackData(std::ifstream& f, std::size_t s, LocalObject& lo)
+: read_count(0), file_size(s), file(f), local_object(lo)
 {
 }
 
@@ -139,10 +159,10 @@ S3Store::s3_put_object_callback(int buffer_size, char * buffer, void * callback_
 		return 0;
 	}
 	std::streamsize count = put_object_callback_data->file.readsome(buffer, buffer_size);
-	
-	if (count < 0) {
-		std::cout << "Upload callback fail : " << buffer_size << std::endl;
-		 
+	if (put_object_callback_data->file.fail()) {
+		LocalObject& lo = put_object_callback_data->local_object;
+		lo.set_status(BackupObject::Invalid);
+		LOG(ERROR) << "S3Store::s3_put_object_callback ifstream::readsome " << lo.fs_path() << " " << strerror(errno);
 		return -1;
 	}
 	put_object_callback_data->read_count += count;
@@ -176,20 +196,43 @@ S3Store::put(LocalObject& lo)
 {	
     S3PutObjectHandler put_object_handler =
     {
-        { &s3_response_properties_callback, &s3_response_complete_callback },
+        { &s3_response_properties_callback, &s3_put_response_complete_callback },
         &s3_put_object_callback
     };
 	std::string key = s3_object_key(lo); 	
 	std::ifstream local_file;
 	local_file.open(lo.fs_path().string().c_str(), std::ios::binary);
-	S3Store::S3PutObjectCallbackData put_object_callback_data(local_file, lo.size());
+	if (local_file.fail()) {
+		LOG(ERROR) << "S3Store::put ifstream::open " << lo.fs_path() << " " << strerror(errno);
+		return -1;
+	}
+	LOG(INFO) << "S3Store::put start upload " << lo.fs_path();
+	S3Store::S3PutObjectCallbackData put_object_callback_data(local_file, lo.size(), lo);
 	S3_put_object(&s3_bucket_context, key.c_str(), lo.size(), NULL, NULL, &put_object_handler, &put_object_callback_data);
 	local_file.close();
-	return 0;
+	if (lo.status() == BackupObject::Invalid) {
+		LOG(INFO) << "S3Store::put failed upload " << lo.fs_path();
+		return -1;
+	} else {
+		LOG(INFO) << "S3Store::put finish upload " << lo.fs_path();
+		return 0;
+	}
 }
 
-S3Store::S3DelObjectCallbackData::S3DelObjectCallbackData(std::string& key)
-: content(key), read_count(0)
+void 
+S3Store::s3_del_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
+{
+    if (error && error->message) {
+		S3DelObjectCallbackData * data = (S3DelObjectCallbackData *)callback_data;
+		data->remote_object.set_status(BackupObject::Invalid);
+		LOG(ERROR) << "S3Store::s3_del_response_complete_callback: message: " << error->message;
+        LOG(ERROR) << "S3Store::s3_del_response_complete_callback: resource: " << error->resource;
+		LOG(ERROR) << "S3Store::s3_del_response_complete_callback: further detail: " << error->furtherDetails;
+	}
+}
+
+S3Store::S3DelObjectCallbackData::S3DelObjectCallbackData(std::string& key, RemoteObject& ro)
+: content(key), read_count(0), remote_object(ro)
 {
 }
 
@@ -211,20 +254,39 @@ S3Store::del(RemoteObject& ro)
 {
     S3PutObjectHandler del_object_handler =
     {
-        { &s3_response_properties_callback, &s3_response_complete_callback },
+        { &s3_response_properties_callback, &s3_del_response_complete_callback },
         &s3_del_object_callback
     };
 	std::string key = ro.uri();
 	key += '.';
 	key += boost::lexical_cast<std::string>(std::time(NULL));
 	key += ".d";
-	S3Store::S3DelObjectCallbackData del_object_callback_data(key);
+	LOG(INFO) << "S3Store::del start delete " << ro.uri();
+	S3Store::S3DelObjectCallbackData del_object_callback_data(key, ro);
 	S3_put_object(&s3_bucket_context, key.c_str(), key.length(), NULL, NULL, &del_object_handler, &del_object_callback_data);
-	return 0;	
+	if (ro.status() == BackupObject::Invalid) {
+		LOG(ERROR) << "S3Store::del failed delete " << ro.uri();
+		return -1;
+	} else {
+		LOG(INFO) << "S3Store::del finish delete " << ro.uri();
+		return 0;	
+	}	
 }
 
-S3Store::S3GetObjectCallbackData::S3GetObjectCallbackData(std::ofstream& f) 
-: file(f)
+void 
+S3Store::s3_get_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data)
+{
+    if (error && error->message) {
+		S3GetObjectCallbackData * data = (S3GetObjectCallbackData *)callback_data;
+		data->remote_object.set_status(BackupObject::Invalid);
+		LOG(ERROR) << "S3Store::s3_get_response_complete_callback: message: " << error->message;
+        LOG(ERROR) << "S3Store::s3_get_response_complete_callback: resource: " << error->resource;
+		LOG(ERROR) << "S3Store::s3_get_response_complete_callback: further detail: " << error->furtherDetails;
+	}
+}
+
+S3Store::S3GetObjectCallbackData::S3GetObjectCallbackData(std::ofstream& f, RemoteObject& ro) 
+: file(f), remote_object(ro)
 {	
 }
 
@@ -235,6 +297,12 @@ S3Store::s3_get_object_callback(int buffer_size, const char * buffer, void * cal
 	S3GetObjectCallbackData * get_object_callback_data = (S3GetObjectCallbackData *)callback_data;
 	
 	get_object_callback_data->file.write(buffer, buffer_size);
+	if (get_object_callback_data->file.fail()) {
+		RemoteObject& ro = get_object_callback_data->remote_object;
+		ro.set_status(BackupObject::Invalid);
+		LOG(ERROR) << "S3Store::s3_get_object_callback ifstream::write " << ro.uri() << " " << strerror(errno);
+		return S3StatusAbortedByCallback;
+	}
 	
 	return S3StatusOK;
 }
@@ -244,18 +312,34 @@ S3Store::get(RemoteObject& ro, const boost::filesystem::path& dir)
 {
 	S3GetObjectHandler get_object_handler = 
     {
-        { &s3_response_properties_callback, &s3_response_complete_callback },
+        { &s3_response_properties_callback, &s3_get_response_complete_callback },
         &s3_get_object_callback
     };
 	std::string key = s3_object_key(ro);
 	boost::filesystem::path p = dir.parent_path();
 	p /= ro.uri();
-	boost::filesystem::create_directories(p.parent_path());
+	boost::system::error_code err;
+	boost::filesystem::create_directories(p.parent_path(), err);
+	if (err.value()) {
+		LOG(ERROR) << "S3Store::get: create_directories " << err.message();
+		return -1;
+	}
 	std::ofstream local_file;
 	local_file.open(p.string().c_str(), std::ios::binary | std::ios::trunc);
-	S3Store::S3GetObjectCallbackData get_object_callback_data(local_file);
+	if (local_file.fail()) {
+		LOG(ERROR) << "S3Store::get ofstream::open " << ro.uri() << " " << strerror(errno);
+		return -1;
+	}
+	LOG(INFO) << "S3Store::get start get " << ro.uri();
+	S3Store::S3GetObjectCallbackData get_object_callback_data(local_file, ro);
 	S3_get_object(&s3_bucket_context, key.c_str(), NULL, 0, 0, NULL, &get_object_handler, &get_object_callback_data);
 	local_file.close();
-	return 0;
+	if (ro.status() == BackupObject::Invalid) {
+		LOG(ERROR) << "S3Store::get failed get " << ro.uri();
+		return -1;
+	} else {
+		LOG(INFO) << "S3Store::get finish get " << ro.uri();
+		return 0;
+	}
 }
 

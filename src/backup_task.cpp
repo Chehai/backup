@@ -16,11 +16,17 @@ BackupTask::BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path
 	set_priority(Task::Low);
 }
 
+BackupTask::~BackupTask()
+{
+	close_database();
+}
+
 int
 BackupTask::open_database()
 {
 	if (!objects_db_conn) {
 		if (sqlite3_open(objects_db_path.c_str(), &objects_db_conn) != SQLITE_OK) {
+			LOG(ERROR) << "BackupTask::open_database: " << sqlite3_errmsg(objects_db_conn);
 			close_database();
 			return -1;		
 		}
@@ -48,13 +54,29 @@ BackupTask::dir_ok(const boost::filesystem::path& dir)
 
 int
 BackupTask::run()
-{		
+{
+	LOG(INFO) << "BackupTask::run: start backup " << backup_dir;		
 	if (dir_ok(backup_dir)) {
-		open_database();
-		LocalObject::populate_local_objects_table(objects_db_conn, backup_dir, backup_prefix);
-		RemoteObject::populate_remote_objects_table(objects_db_conn, remote_store, backup_dir, backup_prefix);
-		LocalObject::find_to_put(objects_db_conn, local_objects_to_put);
-		RemoteObject::find_to_del(objects_db_conn, remote_objects_to_del);
+		if (open_database() < 0) {
+			LOG(ERROR) << "BackupTask::run: BackupTask::open_database failed ";
+			return -1;
+		}
+		if (LocalObject::populate_local_objects_table(objects_db_conn, backup_dir, backup_prefix) < 0) {
+			LOG(ERROR) << "BackupTask::run: LocalObject::populate_local_objects_table failed";
+			return -1;
+		}
+		if (RemoteObject::populate_remote_objects_table(objects_db_conn, remote_store, backup_dir, backup_prefix) < 0) {
+			LOG(ERROR) << "BackupTask::run: RemoteObject::populate_remote_objects_table failed";
+			return -1;
+		}
+		if (LocalObject::find_to_put(objects_db_conn, local_objects_to_put) < 0) {
+			LOG(ERROR) << "BackupTask::run: LocalObject::find_to_put failed";
+			return -1;
+		}
+		if (RemoteObject::find_to_del(objects_db_conn, remote_objects_to_del) < 0) {
+			LOG(ERROR) << "BackupTask::run: RemoteObject::find_to_del failed";
+			return -1;
+		}
 		for (std::list<LocalObject>::iterator iter = local_objects_to_put.begin(); iter != local_objects_to_put.end(); ++iter) {
 			new PutTask(remote_store, *iter, *this);
 		}
@@ -67,5 +89,6 @@ BackupTask::run()
 		close_database();
 	}
 	parent_task.finish_child();
+	LOG(INFO) << "BackupTask::run: finish backup " << backup_dir;			
 	return 0;
 }

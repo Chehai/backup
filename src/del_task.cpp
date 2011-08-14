@@ -10,8 +10,12 @@ DelTask::DelTask(RemoteStore * rs, RemoteObject& ro, BackupTask& bt)
 int
 DelTask::run()
 {
-	remote_store->del(remote_object);
-	set_status(Task::Successful);
+	if (remote_store->del(remote_object) < 0) {
+		LOG(ERROR) << "DelTask::run: RemoteStore::del failed with " << remote_object.uri();
+		set_status(Task::Failed);
+	} else {
+		set_status(Task::Successful);
+	}
 	parent_task.finish_child();
 	return 0;
 }

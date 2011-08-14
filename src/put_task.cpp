@@ -10,8 +10,12 @@ PutTask::PutTask(RemoteStore * rs, LocalObject& lo, BackupTask& bt)
 int
 PutTask::run()
 {
-	remote_store->put(local_object);
-	set_status(Task::Successful);
+	if (remote_store->put(local_object) < 0) {
+		LOG(ERROR) << "PutTask::run: RemoteStore::put failed with " << local_object.fs_path();
+		set_status(Task::Failed);
+	} else {
+		set_status(Task::Successful);
+	}
 	parent_task.finish_child();
 	return 0;
 }

@@ -1,5 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
+#include <cstring>
+#include <cerrno>
 #include <cstdlib>
 #include <ctime>
 #include <string>
@@ -17,4 +19,6 @@
 #include <boost/program_options.hpp>
 #include <sqlite3.h>
 #include <libs3.h>
+#include <glog/logging.h>
+extern void failure_function_for_glog();
 #endif

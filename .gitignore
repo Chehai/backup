@@ -9,3 +9,7 @@ backup.cfg
 objects.db
 main
 my_backup
+backup.db
+stl.db
+stl2.db
+

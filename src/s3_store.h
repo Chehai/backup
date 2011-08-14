@@ -18,6 +18,7 @@ public:
 private:
 	class S3ListBucketCallbackData {
 	public:
+		bool is_successful;
 	    bool is_truncated;
 	    std::string next_marker;
 	    unsigned int objects_count;
@@ -26,21 +27,24 @@ private:
 	};
 	class S3PutObjectCallbackData {
 	public:
+		LocalObject& local_object;
 		std::size_t file_size;
 		std::ifstream& file;
 		std::streamsize read_count;
-		S3PutObjectCallbackData(std::ifstream&, std::size_t);
+		S3PutObjectCallbackData(std::ifstream&, std::size_t, LocalObject&);
 	};
 	class S3DelObjectCallbackData {
 	public:
+		RemoteObject& remote_object;
 		std::size_t read_count;
 		std::string& content;
-		S3DelObjectCallbackData(std::string&);
+		S3DelObjectCallbackData(std::string&, RemoteObject&);
 	};
 	class S3GetObjectCallbackData {
 	public:
+		RemoteObject& remote_object;
 		std::ofstream& file;
-		S3GetObjectCallbackData(std::ofstream&);		
+		S3GetObjectCallbackData(std::ofstream&, RemoteObject&);		
 	};
 	std::string s3_access_key;
 	std::string s3_secret_access_key;
@@ -51,6 +55,10 @@ private:
 	
 	static unsigned int s3_store_usage_count;
 	static S3Status s3_response_properties_callback(const S3ResponseProperties *, void *);
+	static void s3_list_bucket_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data);
+	static void s3_put_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data);
+	static void s3_del_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data);
+	static void s3_get_response_complete_callback(S3Status status, const S3ErrorDetails *error, void *callback_data);
 	static void s3_response_complete_callback(S3Status, const S3ErrorDetails *, void *);
 	static S3Status s3_get_object_callback(int buffer_size, const char * buffer, void * callback_data);
 	static int s3_put_object_callback(int bufferSize, char *buffer, void *callbackData);

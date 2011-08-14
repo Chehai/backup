@@ -22,6 +22,7 @@ RestoreTask::open_database()
 {
 	if (!objects_db_conn) {
 		if (sqlite3_open(objects_db_path.c_str(), &objects_db_conn) != SQLITE_OK) {
+			LOG(FATAL) << "RestoreTask::open_database: " << sqlite3_errmsg(objects_db_conn);
 			close_database();
 			return -1;		
 		}
@@ -49,10 +50,20 @@ RestoreTask::dir_ok(const boost::filesystem::path& dir)
 int
 RestoreTask::run()
 {
+	LOG(INFO) << "RestoreTask::run: start restore " << restore_dir;		
 	if (dir_ok(restore_dir)) {
-		open_database();
-		RemoteObject::populate_remote_objects_table(objects_db_conn, remote_store, restore_dir, backup_prefix);		
-		RemoteObject::find_to_get(objects_db_conn, timestamp, remote_objects_to_get);
+		if (open_database() < 0) {
+			LOG(ERROR) << "RestoreTask::run: RestoreTask::open_database failed ";
+			return -1;
+		}
+		if (RemoteObject::populate_remote_objects_table(objects_db_conn, remote_store, restore_dir, backup_prefix) < 0) {
+			LOG(ERROR) << "RestoreTask::run: RemoteObject::populate_remote_objects_table failed";
+			return -1;
+		}		
+		if (RemoteObject::find_to_get(objects_db_conn, timestamp, remote_objects_to_get) < 0) {
+			LOG(ERROR) << "RestoreTask::run: RemoteObject::find_to_get failed";
+			return -1;
+		}
 		for (std::list<RemoteObject>::iterator iter = remote_objects_to_get.begin(); iter != remote_objects_to_get.end(); ++iter) {
 			new GetTask(remote_store, *iter, restore_dir, *this);
 		}
@@ -62,5 +73,6 @@ RestoreTask::run()
 		close_database();
 	}
 	parent_task.finish_child();
+	LOG(INFO) << "RestoreTask::run: finish restore " << restore_dir;
 	return 0;
 }

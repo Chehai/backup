@@ -10,8 +10,12 @@ GetTask::GetTask(RemoteStore * rs, RemoteObject& ro, boost::filesystem::path& di
 int
 GetTask::run()
 {
-	remote_store->get(remote_object, restore_dir);
-	set_status(Task::Successful);
+	if (remote_store->get(remote_object, restore_dir) < 0) {
+		LOG(ERROR) << "GetTask::run: RemoteStore::get failed with " << remote_object.uri();
+		set_status(Task::Failed);
+	} else {
+		set_status(Task::Successful);
+	}
 	parent_task.finish_child();
 	return 0;
 }

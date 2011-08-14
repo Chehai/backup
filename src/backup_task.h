@@ -11,6 +11,7 @@ class BackupTask : public ParentTask
 {
 public:
 	BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, ParentTask& m);
+	~BackupTask();
 	int run();
 private:
 	ParentTask * backup;
