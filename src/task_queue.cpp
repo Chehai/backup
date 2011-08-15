@@ -4,7 +4,7 @@ TaskQueue::push(Task* t)
 {
 	boost::mutex::scoped_lock lk(queue_mutex);
 	t->priority() == Task::High ? high_queue.push_back(t) : low_queue.push_back(t);
-	queue_condition.notify_one();
+	queue_condition.notify_all();
 	return 0;
 }
 

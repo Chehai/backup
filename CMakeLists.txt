@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 project(my_backup)
+SET(CMAKE_BUILD_TYPE debug)
 include_directories(${backup_SOURCE_DIR}/src)
 add_subdirectory(src)
 add_subdirectory(test)

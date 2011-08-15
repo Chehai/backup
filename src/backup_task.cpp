@@ -40,6 +40,7 @@ BackupTask::close_database()
 	if (objects_db_conn) {
 		sqlite3_close(objects_db_conn);
 		objects_db_conn = NULL;
+		boost::filesystem::remove(objects_db_path);
 	}
 	return 0;
 }
@@ -58,22 +59,31 @@ BackupTask::run()
 	LOG(INFO) << "BackupTask::run: start backup " << backup_dir;		
 	if (dir_ok(backup_dir)) {
 		if (open_database() < 0) {
+			set_status(Task::Failed);
 			LOG(ERROR) << "BackupTask::run: BackupTask::open_database failed ";
 			return -1;
 		}
 		if (LocalObject::populate_local_objects_table(objects_db_conn, backup_dir, backup_prefix) < 0) {
+			close_database();
+			set_status(Task::Failed);
 			LOG(ERROR) << "BackupTask::run: LocalObject::populate_local_objects_table failed";
 			return -1;
 		}
 		if (RemoteObject::populate_remote_objects_table(objects_db_conn, remote_store, backup_dir, backup_prefix) < 0) {
+			close_database();
+			set_status(Task::Failed);
 			LOG(ERROR) << "BackupTask::run: RemoteObject::populate_remote_objects_table failed";
 			return -1;
 		}
 		if (LocalObject::find_to_put(objects_db_conn, local_objects_to_put) < 0) {
+			close_database();
+			set_status(Task::Failed);
 			LOG(ERROR) << "BackupTask::run: LocalObject::find_to_put failed";
 			return -1;
 		}
 		if (RemoteObject::find_to_del(objects_db_conn, remote_objects_to_del) < 0) {
+			close_database();
+			set_status(Task::Failed);
 			LOG(ERROR) << "BackupTask::run: RemoteObject::find_to_del failed";
 			return -1;
 		}

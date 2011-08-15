@@ -10,6 +10,7 @@ class RestoreTask : public ParentTask
 {
 public:
 	RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, std::time_t, ParentTask& m);
+	~RestoreTask();
 	int run();
 private:
 	RemoteStore * remote_store;
@@ -21,7 +22,6 @@ private:
 	ThreadPool& thread_pool;
 	std::time_t timestamp;
 	ParentTask& parent_task;
-	bool dir_ok(const boost::filesystem::path&);
 	int open_database();
 	int close_database();
 };

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "src/backup_task.h"
 #include "src/restore_task.h"
+#include "src/list_task.h"
 #include "src/s3_store.h"
 
 void failure_function_for_glog() {
@@ -28,7 +29,11 @@ main(int argc, char** argv)
 {
 	google::InitGoogleLogging(argv[0]);
 	google::InstallFailureFunction(&failure_function_for_glog);
-  
+  	enum Command {
+    	Backup,
+		Restore,
+		List
+    };
 	std::string config_file;
 	std::vector<std::string> backup_dirs;
 	std::string backup_prefix = "";
@@ -36,14 +41,15 @@ main(int argc, char** argv)
 	std::string s3_secret_key = "";
 	std::string s3_bucket_name = "";
 	boost::filesystem::path db_path = "objects.db";
-	bool restore = false;
+	Command command = Backup;
 	std::time_t timestamp = std::time(NULL);
 	std::string timestamp_str = boost::posix_time::to_simple_string(boost::date_time::c_local_adjustor<boost::posix_time::ptime>::utc_to_local(boost::posix_time::from_time_t(timestamp)));
-
+	
 	boost::program_options::options_description basic_options("Basic Options");
     basic_options.add_options()
         ("help,h", "Show help message")
 		("restore,r", "Restore")
+		("list,l", "List")
 		("timestamp,t", boost::program_options::value<std::string>(), "Timestamp")
         ("config,c", boost::program_options::value<std::string>(&config_file)->default_value("backup.cfg"),
                   "name of a file of a configuration.")
@@ -72,7 +78,7 @@ main(int argc, char** argv)
 		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, cmdline_options), vm);
 		boost::program_options::notify(vm);
 	} catch (boost::program_options::error& err) {
-		LOG(FATAL) << "parse program options error: " << err.what();
+		LOG(FATAL) << "main: parse program options error " << err.what();
 	}
 	if (vm.count("help")) {
 		std::cout << "./my_backup --help|-h --config|-c --backup-dir|-b --backup-prefix|-p --backup-database|-d --restore|-r --timestamp|-t" << std::endl;
@@ -80,13 +86,20 @@ main(int argc, char** argv)
 	}
 	
 	if (vm.count("restore")) {
-		restore = true;
+		command = Restore;
+	}
+	
+	if (vm.count("list")) {
+		command = List;
 	}
 	
 	if (vm.count("timestamp")) {
-		timestamp_str = vm["timestamp"].as<std::string>();
-		timestamp = convert_to_timestamp(timestamp_str);
-		
+		try {
+			timestamp_str = vm["timestamp"].as<std::string>();
+			timestamp = convert_to_timestamp(timestamp_str);
+		} catch (std::exception& e) {
+			LOG(FATAL) << "main: invalid timestamp " << e.what();
+		}
 	}
 
 	std::ifstream ifs(config_file.c_str());
@@ -144,25 +157,38 @@ main(int argc, char** argv)
 	ThreadPool tp(8, 4);
 	for (std::vector<std::string>::iterator iter = backup_dirs.begin(); iter != backup_dirs.end(); ++iter) {
 		boost::filesystem::path backup_dir = *iter;
-		if (restore) {
-			RestoreTask * rt = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, timestamp, m);
-			if (!rt) {
-				LOG(FATAL) << "main: new RestoreTask failed";
-			} else {
-				LOG(INFO) << "restore directory: " << backup_dir << " at " << timestamp_str << " prefix: " << backup_prefix ;
-			}
-		} else {
-			BackupTask * bt = new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
-			if (!bt) {
-				LOG(FATAL) << "main: new BackupTask failed";
-			} else {
-				LOG(INFO) << "backup directory: " << backup_dir << " prefix: " << backup_prefix;
-			}
+		Task * task = NULL;
+		switch (command) {
+			case Backup:
+				task = new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+				if (!task) {
+					LOG(FATAL) << "main: new BackupTask failed";
+				} else {
+					LOG(INFO) << "backup directory: " << backup_dir << " prefix: " << backup_prefix;
+				}
+				break;
+			case Restore:
+				task = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, timestamp, m);
+				if (!task) {
+					LOG(FATAL) << "main: new RestoreTask failed";
+				} else {
+					LOG(INFO) << "restore directory: " << backup_dir << " at " << timestamp_str << " with prefix " << backup_prefix ;
+				}
+				break;
+			case List:
+				task = new ListTask(&remote_store, backup_dir, backup_prefix, timestamp, m);
+				if (!task) {
+					LOG(FATAL) << "main: new ListTask failed";
+				} else {
+					LOG(INFO) << "list directory: " << backup_dir << " at " << timestamp_str << " with prefix " << backup_prefix ;
+				}
+				break;
 		}
 	}
 	tp.pushs(m.children());
 	tp.start();
 	m.wait_children();
+	tp.stop();
 	LOG(INFO) << "done";
 	return 0;
 }

@@ -7,6 +7,7 @@ public:
 	ThreadPool(int, int);
 	~ThreadPool();
 	int start();
+	int stop();
 	int pushs(std::list<Task *>&);
 private:
 	int thread_pool_size;
