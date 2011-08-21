@@ -9,7 +9,7 @@
 class RestoreTask : public ParentTask
 {
 public:
-	RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, std::time_t, ParentTask& m);
+	RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, std::time_t, bool, std::string&, ParentTask& m);
 	~RestoreTask();
 	int run();
 private:
@@ -22,6 +22,8 @@ private:
 	ThreadPool& thread_pool;
 	std::time_t timestamp;
 	ParentTask& parent_task;
+	bool use_gpg;
+	std::string gpg_recipient;
 	int open_database();
 	int close_database();
 };

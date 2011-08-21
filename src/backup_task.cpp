@@ -1,7 +1,7 @@
 #include "backup_task.h"
 
-BackupTask::BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, ParentTask& m)
-: remote_store(rs), backup_prefix(prefix), objects_db_conn(NULL), thread_pool(tp), parent_task(m)
+BackupTask::BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, bool gpg, std::string& rec, ParentTask& m)
+: remote_store(rs), backup_prefix(prefix), objects_db_conn(NULL), thread_pool(tp), parent_task(m), use_gpg(gpg), gpg_recipient(rec)
 {
 	backup_dir = dir.filename().string() == "." ? dir.parent_path() : dir;
 	boost::system::error_code err;
@@ -88,7 +88,7 @@ BackupTask::run()
 			return -1;
 		}
 		for (std::list<LocalObject>::iterator iter = local_objects_to_put.begin(); iter != local_objects_to_put.end(); ++iter) {
-			PutTask * pt = new PutTask(remote_store, *iter, *this);
+			PutTask * pt = new PutTask(remote_store, *iter, *this, use_gpg, gpg_recipient);
 			if (!pt) {
 				LOG(FATAL) << "BackupTask::run: new PutTask failed";
 			}

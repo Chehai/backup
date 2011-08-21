@@ -8,12 +8,14 @@
 class RestoreTask;
 class GetTask : public Task {
 public:
-	GetTask(RemoteStore *, RemoteObject&, boost::filesystem::path&, RestoreTask&);
+	GetTask(RemoteStore *, RemoteObject&, boost::filesystem::path&, RestoreTask&, bool, std::string&);
 	int run();
 private:
 	RemoteStore * remote_store;
 	RemoteObject& remote_object;
 	RestoreTask& parent_task;
 	boost::filesystem::path& restore_dir;
+	bool use_gpg;
+	std::string gpg_recipient;
 };
 #endif

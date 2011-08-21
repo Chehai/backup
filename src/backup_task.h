@@ -10,7 +10,7 @@
 class BackupTask : public ParentTask
 {
 public:
-	BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, ParentTask& m);
+	BackupTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, bool, std::string&, ParentTask& m);
 	~BackupTask();
 	int run();
 private:
@@ -25,6 +25,8 @@ private:
 	std::list<RemoteObject> remote_objects_to_get;
 	ThreadPool& thread_pool;
 	ParentTask& parent_task;
+	bool use_gpg;
+	std::string gpg_recipient;
 	bool dir_ok(const boost::filesystem::path&);
 	int open_database();
 	int close_database();

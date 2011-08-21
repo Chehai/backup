@@ -1,7 +1,7 @@
 #include "restore_task.h"
 
-RestoreTask::RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, std::time_t t, ParentTask& m)
-: remote_store(rs), backup_prefix(prefix), objects_db_conn(NULL), thread_pool(tp), timestamp(t), parent_task(m)
+RestoreTask::RestoreTask(ThreadPool& tp, RemoteStore * rs, boost::filesystem::path& dir, std::string& prefix, std::time_t t, bool gpg, std::string& rec, ParentTask& m)
+: remote_store(rs), backup_prefix(prefix), objects_db_conn(NULL), thread_pool(tp), timestamp(t), parent_task(m), use_gpg(gpg), gpg_recipient(rec)
 {
 	restore_dir = dir.filename().string() == "." ? dir.parent_path() : dir;
 	boost::filesystem::create_directories(restore_dir);
@@ -68,7 +68,7 @@ RestoreTask::run()
 		return -1;
 	}
 	for (std::list<RemoteObject>::iterator iter = remote_objects_to_get.begin(); iter != remote_objects_to_get.end(); ++iter) {
-		GetTask * t = new GetTask(remote_store, *iter, restore_dir, *this);
+		GetTask * t = new GetTask(remote_store, *iter, restore_dir, *this, use_gpg, gpg_recipient);
 		if (!t) {
 			LOG(FATAL) << "RestoreTask::run: new GetTask failed";
 		}

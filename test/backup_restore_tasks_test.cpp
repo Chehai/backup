@@ -13,7 +13,8 @@ BOOST_AUTO_TEST_CASE(backup_task_constuctor_test)
 	boost::filesystem::path file_path = __FILE__;
 	boost::filesystem::path dir = file_path.parent_path();
 	std::string pre = "";
-	BackupTask * bt = new BackupTask(tp, &rs, dir, pre, m);
+	std::string gpg_recipient = "";
+	BackupTask * bt = new BackupTask(tp, &rs, dir, pre, false, gpg_recipient, m);
 	BOOST_CHECK_EQUAL(m.children().front(), bt);
 }
 
@@ -25,8 +26,9 @@ BOOST_AUTO_TEST_CASE(restore_task_constuctor_test)
 	boost::filesystem::path file_path = __FILE__;
 	boost::filesystem::path dir = file_path.parent_path();
 	std::string pre = "";
+	std::string gpg_recipient = "";
 	std::time_t now = std::time(NULL);
-	RestoreTask * rt = new RestoreTask(tp, &rs, dir, pre, now, m);
+	RestoreTask * rt = new RestoreTask(tp, &rs, dir, pre, now, false, gpg_recipient, m);
 	BOOST_CHECK_EQUAL(m.children().front(), rt);
 }
 
@@ -48,14 +50,15 @@ BOOST_AUTO_TEST_CASE(backup_restore_test)
 	std::string prefix = "";
 	boost::filesystem::path backup_dir = filepath.parent_path();
 	backup_dir /= "backup";
-	BackupTask * bt = new BackupTask(tp, &ss, backup_dir, prefix, m);
+	std::string gpg_recipient = "Chehai Wu";
+	BackupTask * bt = new BackupTask(tp, &ss, backup_dir, prefix, true, gpg_recipient, m);
 	tp.pushs(m.children());
 	m.wait_children();
 	
 	boost::filesystem::remove_all(backup_dir);
 	boost::filesystem::create_directories(backup_dir);
 	std::time_t now = std::time(NULL);
-	RestoreTask * rt = new RestoreTask(tp, &ss, backup_dir, prefix, now, m);
+	RestoreTask * rt = new RestoreTask(tp, &ss, backup_dir, prefix, now, true, gpg_recipient, m);
 	tp.pushs(m.children());
 	m.wait_children();
 	

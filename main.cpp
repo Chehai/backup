@@ -44,6 +44,8 @@ main(int argc, char** argv)
 	Command command = Backup;
 	std::time_t timestamp = std::time(NULL);
 	std::string timestamp_str = boost::posix_time::to_simple_string(boost::date_time::c_local_adjustor<boost::posix_time::ptime>::utc_to_local(boost::posix_time::from_time_t(timestamp)));
+	bool use_gpg = false;
+	std::string gpg_recipient = "";
 	
 	boost::program_options::options_description basic_options("Basic Options");
     basic_options.add_options()
@@ -56,6 +58,8 @@ main(int argc, char** argv)
     ;
 	boost::program_options::options_description backup_options("Backup Options");
 	backup_options.add_options()
+		("gpg,e", "GnuPG")
+		("gpg-recipient,r", "GnuPG Recipient")
 		("backup-dirs,b", boost::program_options::value< std::vector<std::string> >(), "Backup Directories")
 		("backup-prefix,p", boost::program_options::value<std::string>(), "Backup Prefix")
 		("backup-database,d", boost::program_options::value<std::string>(), "Backup Database Path")
@@ -92,6 +96,7 @@ main(int argc, char** argv)
 	if (vm.count("list")) {
 		command = List;
 	}
+
 	
 	if (vm.count("timestamp")) {
 		try {
@@ -124,6 +129,16 @@ main(int argc, char** argv)
 	
 	if (vm.count("backup-database")) {
 		db_path = vm["backup-prefix"].as<std::string>();
+	}
+	
+	if (vm.count("gpg")) {
+		use_gpg = true;
+	}
+	
+	if (use_gpg) {
+		if (vm.count("gpg-recipient")) {
+			gpg_recipient = vm["gpg-recipient"].as<std::string>();
+		}
 	}
 	
 	if (vm.count("s3-access-key")) {
@@ -160,7 +175,7 @@ main(int argc, char** argv)
 		Task * task = NULL;
 		switch (command) {
 			case Backup:
-				task = new BackupTask(tp, &remote_store, backup_dir, backup_prefix, m);
+				task = new BackupTask(tp, &remote_store, backup_dir, backup_prefix, use_gpg, gpg_recipient, m);
 				if (!task) {
 					LOG(FATAL) << "main: new BackupTask failed";
 				} else {
@@ -168,7 +183,7 @@ main(int argc, char** argv)
 				}
 				break;
 			case Restore:
-				task = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, timestamp, m);
+				task = new RestoreTask(tp, &remote_store, backup_dir, backup_prefix, timestamp, use_gpg, gpg_recipient, m);
 				if (!task) {
 					LOG(FATAL) << "main: new RestoreTask failed";
 				} else {
