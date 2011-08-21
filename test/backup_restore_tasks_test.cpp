@@ -51,13 +51,7 @@ BOOST_AUTO_TEST_CASE(backup_restore_test)
 	boost::filesystem::path backup_dir = filepath.parent_path();
 	backup_dir /= "backup";
 	std::string gpg_recipient = "Chehai Wu";
-	BackupTask * bt = new BackupTask(tp, &ss, backup_dir, prefix, true, gpg_recipient, m);
-	tp.pushs(m.children());
-	m.wait_children();
-	
-	boost::filesystem::remove_all(backup_dir);
-	boost::filesystem::create_directories(backup_dir);
-	std::time_t now = std::time(NULL);
+		std::time_t now = std::time(NULL);
 	RestoreTask * rt = new RestoreTask(tp, &ss, backup_dir, prefix, now, true, gpg_recipient, m);
 	tp.pushs(m.children());
 	m.wait_children();

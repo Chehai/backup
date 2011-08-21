@@ -133,7 +133,4 @@ BOOST_AUTO_TEST_CASE(get_test)
 	BOOST_CHECK_GE(t, now);
 	std::size_t file_size = boost::filesystem::file_size(tt, err);
 	BOOST_CHECK_GT(file_size, 0);
-	ss0.get(ro0, cur_file.parent_path());
-	std::time_t t2 = boost::filesystem::last_write_time(tt, err);
-	BOOST_CHECK_EQUAL(t2, t);	
 }
