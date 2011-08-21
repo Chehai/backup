@@ -59,7 +59,7 @@ main(int argc, char** argv)
 	boost::program_options::options_description backup_options("Backup Options");
 	backup_options.add_options()
 		("gpg,e", "GnuPG")
-		("gpg-recipient,r", "GnuPG Recipient")
+		("gpg-recipient,u", boost::program_options::value<std::string>(), "GnuPG Recipient")
 		("backup-dirs,b", boost::program_options::value< std::vector<std::string> >(), "Backup Directories")
 		("backup-prefix,p", boost::program_options::value<std::string>(), "Backup Prefix")
 		("backup-database,d", boost::program_options::value<std::string>(), "Backup Database Path")

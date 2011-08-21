@@ -44,10 +44,11 @@ GetTask::run()
 			} else {
 				std::string cmd = "gpg --batch --yes -r '";
 				cmd += gpg_recipient;
-				cmd += "' -o ";
+				cmd += "' -o '";
 				cmd += fs_path.string();
-				cmd += " -d ";
+				cmd += "' -d '";
 				cmd += gpg_fs_path.string();
+				cmd += "'";
 				if (system(cmd.c_str()) < 0) {
 					LOG(ERROR) << "GetTask::run: gpg failed ";
 					set_status(Task::Failed);

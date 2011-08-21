@@ -15,8 +15,9 @@ PutTask::run()
 		std::string cmd = "gpg --batch --yes -r '";
 		std::string fs_path = local_object.fs_path().string();
 		cmd += gpg_recipient;
-		cmd += "' -e ";
+		cmd += "' -e '";
 		cmd += fs_path;
+		cmd += "'";
 		LOG(INFO) << cmd;
 		if (system(cmd.c_str()) < 0) {
 			LOG(ERROR) << "PutTask::run GnuPG failed";
