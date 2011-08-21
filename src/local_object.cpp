@@ -8,7 +8,6 @@ LocalObject::LocalObject()
 
 LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::filesystem::path& backup_dir, const std::string& backup_prefix)
 {
-	local_fs_path = file_path;
 	
 	set_status(BackupObject::Valid);
 	
@@ -23,6 +22,8 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 	uri_path = real_backup_dir.filename();
 	uri_path /= relative_path;
 	set_uri(backup_prefix + uri_path.string());
+
+	set_fs_path(file_path);
 	
 	boost::system::error_code err;
 	std::time_t t = boost::filesystem::last_write_time(local_fs_path, err);
@@ -30,14 +31,6 @@ LocalObject::LocalObject(const boost::filesystem::path& file_path, const boost::
 		set_status(BackupObject::Invalid);
 	}	
 	set_updated_at(t);
-	
-	err.clear();
-	std::size_t file_size = boost::filesystem::file_size(local_fs_path, err);
-	if (err.value()) {
-		file_size = 0;
-		set_status(BackupObject::Invalid);
-	}
-	set_size(file_size);
 }
 
 boost::filesystem::path&
@@ -50,6 +43,13 @@ int
 LocalObject::set_fs_path(const boost::filesystem::path& p)
 {
 	local_fs_path = p;
+	boost::system::error_code err;
+	std::size_t file_size = boost::filesystem::file_size(local_fs_path, err);
+	if (err.value()) {
+		file_size = 0;
+		set_status(BackupObject::Invalid);
+	}
+	set_size(file_size);
 	return 0;
 }
 

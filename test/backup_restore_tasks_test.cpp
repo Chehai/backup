@@ -74,4 +74,5 @@ BOOST_AUTO_TEST_CASE(backup_restore_test)
 	boost::filesystem::path file4 = backup_dir;
 	file4 /= "sub/file4.txt";
 	BOOST_CHECK_EQUAL(boost::filesystem::exists(file4), true);
+	tp.stop();
 }

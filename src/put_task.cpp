@@ -12,11 +12,12 @@ PutTask::run()
 {
 	if (use_gpg) {
 		// need a better way
-		std::string cmd = "gpg --batch --yes -e -r '";
+		std::string cmd = "gpg --batch --yes -r '";
 		std::string fs_path = local_object.fs_path().string();
 		cmd += gpg_recipient;
-		cmd += "' ";
+		cmd += "' -e ";
 		cmd += fs_path;
+		LOG(INFO) << cmd;
 		if (system(cmd.c_str()) < 0) {
 			LOG(ERROR) << "PutTask::run GnuPG failed";
 			set_status(Task::Failed);
@@ -28,14 +29,22 @@ PutTask::run()
 		}
 	}
 	
+	int ret;
 	if (remote_store->put(local_object) < 0) {
 		LOG(ERROR) << "PutTask::run: RemoteStore::put failed with " << local_object.fs_path();
 		set_status(Task::Failed);
-		parent_task.finish_child();
-		return -1;
+		ret = -1;
 	} else {
 		set_status(Task::Successful);
-		parent_task.finish_child();
-		return 0;
+		ret = 0;
 	}
+	if (use_gpg) {
+		boost::system::error_code err;
+		boost::filesystem::remove_all(local_object.fs_path(), err);
+		if (err.value()) {
+			LOG(ERROR) << "PutTask::run: remove_all failed " << err.message();
+		}
+	}
+	parent_task.finish_child();
+	return ret;
 }

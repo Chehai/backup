@@ -320,16 +320,6 @@ S3Store::get(RemoteObject& ro, const boost::filesystem::path& dir)
 	p /= ro.uri();
 	boost::system::error_code err;
 
-	if (boost::filesystem::exists(p, err) && !err.value()) {
-		err.clear();
-		std::size_t file_size = boost::filesystem::file_size(p, err);
-		if (!err.value() && file_size == ro.size()) {
-			LOG(INFO) << "S3Store::get finish get (already exists)" << ro.uri();
-			return 0;
-		}
-	}
-	
-	err.clear();
 	boost::filesystem::create_directories(p.parent_path(), err);
 	if (err.value()) {
 		LOG(ERROR) << "S3Store::get: create_directories " << err.message();
